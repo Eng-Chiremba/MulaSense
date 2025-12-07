@@ -27,8 +27,11 @@ export default function Login() {
       const response = await authAPI.login(phone, password);
       const { token, user } = response.data;
       
+      const accountType = user.is_business ? 'business' : 'individual';
       localStorage.setItem('token', token);
-      setUserType(user.is_business ? 'business' : 'individual');
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('accountType', accountType);
+      setUserType(accountType);
       setIsAuthenticated(true);
       
       toast({

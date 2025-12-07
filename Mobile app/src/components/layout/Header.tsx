@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Menu, User, Settings, HelpCircle, LogOut, Building2, MessageSquare, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,8 +32,16 @@ const menuItems = [
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(mockUser);
   const navigate = useNavigate();
   const unreadCount = mockNotifications.filter(n => !n.read).length;
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-border safe-top">
@@ -50,14 +58,14 @@ export function Header() {
               <div className="flex items-center gap-4">
                 <Avatar className="w-14 h-14 border-2 border-primary-foreground/30">
                   <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-lg font-semibold">
-                    {mockUser.name.split(' ').map(n => n[0]).join('')}
+                    {user.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left">
                   <SheetTitle className="text-primary-foreground font-semibold">
-                    {mockUser.name}
+                    {user.name}
                   </SheetTitle>
-                  <p className="text-primary-foreground/80 text-sm">{mockUser.email}</p>
+                  <p className="text-primary-foreground/80 text-sm">{user.email}</p>
                 </div>
               </div>
             </SheetHeader>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   User, Mail, Phone, Calendar, Building2, MapPin, 
   Wallet, Camera, ChevronRight, Shield
@@ -7,26 +8,32 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { mockUser } from '@/data/mockData';
 import { Separator } from '@/components/ui/separator';
 
-const profileSections = [
-  {
-    title: 'Personal Information',
-    items: [
-      { icon: User, label: 'Full Name', value: mockUser.name },
-      { icon: Mail, label: 'Email', value: mockUser.email },
-      { icon: Phone, label: 'Phone', value: mockUser.phone || 'Not set' },
-      { icon: Calendar, label: 'Date of Birth', value: 'Jan 15, 1990' },
-    ],
-  },
-  {
-    title: 'Financial Settings',
-    items: [
-      { icon: Wallet, label: 'Currency', value: mockUser.currency },
-      { icon: Wallet, label: 'Monthly Income', value: `$${mockUser.monthlyIncome?.toLocaleString()}` },
-    ],
-  },
-];
-
 export default function Profile() {
+  const [user, setUser] = useState(mockUser);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const profileSections = [
+    {
+      title: 'Personal Information',
+      items: [
+        { icon: User, label: 'Full Name', value: user.name || 'Not set' },
+        { icon: Mail, label: 'Email', value: user.email || 'Not set' },
+        { icon: Phone, label: 'Phone', value: user.phone || 'Not set' },
+      ],
+    },
+    {
+      title: 'Account Type',
+      items: [
+        { icon: user.is_business ? Building2 : User, label: 'Account Type', value: user.is_business ? 'Business' : 'Individual' },
+      ],
+    },
+  ];
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
@@ -34,18 +41,18 @@ export default function Profile() {
         <div className="relative inline-block">
           <Avatar className="w-24 h-24 border-4 border-primary/20">
             <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-              {mockUser.name.split(' ').map(n => n[0]).join('')}
+              {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
             </AvatarFallback>
           </Avatar>
           <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
             <Camera className="w-4 h-4" />
           </button>
         </div>
-        <h1 className="text-xl font-bold mt-4">{mockUser.name}</h1>
-        <p className="text-sm text-muted-foreground">{mockUser.email}</p>
+        <h1 className="text-xl font-bold mt-4">{user.name}</h1>
+        <p className="text-sm text-muted-foreground">{user.email}</p>
         <div className="flex items-center justify-center gap-2 mt-2">
           <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium capitalize">
-            {mockUser.userType}
+            {user.is_business ? 'Business' : 'Individual'}
           </span>
         </div>
       </div>

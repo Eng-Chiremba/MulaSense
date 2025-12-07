@@ -13,6 +13,7 @@ import Budget from "./pages/Budget";
 import AddBudget from "./pages/AddBudget";
 import Goals from "./pages/Goals";
 import AddGoal from "./pages/AddGoal";
+import EditGoal from "./pages/EditGoal";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -23,6 +24,7 @@ import ProfitLoss from "./pages/business/ProfitLoss";
 import TaxCalculator from "./pages/business/TaxCalculator";
 import CreditLine from "./pages/business/CreditLine";
 import AIInsights from "./pages/AIInsights";
+import AIAdvisor from "./pages/AIAdvisor";
 import AddTransaction from "./pages/AddTransaction";
 
 const queryClient = new QueryClient();
@@ -92,6 +94,12 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
+      <Route path="/goals/edit/:id" element={
+        <ProtectedRoute>
+          <EditGoal />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/reports" element={
         <ProtectedRoute>
           <AppLayout>
@@ -120,6 +128,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <AIInsights />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/ai-advisor" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AIAdvisor />
           </AppLayout>
         </ProtectedRoute>
       } />

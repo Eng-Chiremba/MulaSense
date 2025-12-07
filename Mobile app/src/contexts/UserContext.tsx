@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserType } from '@/types';
 
 interface UserContextType {
@@ -11,8 +11,15 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [userType, setUserType] = useState<UserType>('individual');
+  const [userType, setUserType] = useState<UserType>(() => {
+    const stored = localStorage.getItem('accountType');
+    return (stored as UserType) || 'individual';
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('accountType', userType);
+  }, [userType]);
 
   return (
     <UserContext.Provider value={{ userType, setUserType, isAuthenticated, setIsAuthenticated }}>

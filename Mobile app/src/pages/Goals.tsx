@@ -1,7 +1,6 @@
 import { Plus, Target, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GoalCard } from '@/components/features/GoalCard';
-import { mockGoals } from '@/data/mockData';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -14,12 +13,11 @@ export default function Goals() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeFilter, setActiveFilter] = useState('Active');
-  const [goals, setGoals] = useState(mockGoals);
+  const [goals, setGoals] = useState([]);
 
   useEffect(() => {
     const savedGoals = JSON.parse(localStorage.getItem('goals') || '[]');
-    const allGoals = [...mockGoals, ...savedGoals];
-    setGoals(allGoals);
+    setGoals(savedGoals);
   }, [location]);
 
   const filteredGoals = goals
@@ -31,7 +29,7 @@ export default function Goals() {
 
   const totalTargetAmount = goals.reduce((sum, g) => sum + g.targetAmount, 0);
   const totalSavedAmount = goals.reduce((sum, g) => sum + g.currentAmount, 0);
-  const overallProgress = Math.round((totalSavedAmount / totalTargetAmount) * 100);
+  const overallProgress = totalTargetAmount > 0 ? Math.round((totalSavedAmount / totalTargetAmount) * 100) : 0;
 
   const activeGoals = goals.filter(g => g.status === 'active');
   const completedGoals = goals.filter(g => g.status === 'completed');
@@ -91,7 +89,7 @@ export default function Goals() {
         </div>
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
           <Clock className="w-5 h-5 text-info mx-auto mb-1" />
-          <p className="text-xl font-bold">{mockGoals.length}</p>
+          <p className="text-xl font-bold">{goals.length}</p>
           <p className="text-xs text-muted-foreground">Total</p>
         </div>
       </div>
@@ -118,11 +116,11 @@ export default function Goals() {
       <div className="space-y-4 animate-fade-up stagger-4">
         {filteredGoals.length > 0 ? (
           filteredGoals.map((goal) => (
-            <GoalCard 
-              key={goal.id} 
-              goal={goal}
-              onClick={() => navigate(`/goals/${goal.id}`)}
-            />
+            <div key={goal.id} onClick={() => navigate(`/goals/edit/${goal.id}`)} className="cursor-pointer">
+              <GoalCard 
+                goal={goal}
+              />
+            </div>
           ))
         ) : (
           <div className="text-center py-12">

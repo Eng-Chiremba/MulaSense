@@ -15,9 +15,26 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(mockDashboardMetrics);
   const [transactions, setTransactions] = useState(mockTransactions.slice(0, 4));
+  const [userName, setUserName] = useState('User');
+  const [greeting, setGreeting] = useState('Good morning');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserName(user.name || 'User');
+    }
+
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting('Good morning');
+    } else if (hour < 18) {
+      setGreeting('Good afternoon');
+    } else {
+      setGreeting('Good evening');
+    }
+
     const fetchData = async () => {
       try {
         const [dashboardRes, transactionsRes] = await Promise.all([
@@ -46,8 +63,8 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       {/* Greeting */}
       <div className="animate-fade-up">
-        <p className="text-muted-foreground text-sm">Good morning,</p>
-        <h1 className="text-2xl font-bold">{mockUser.name.split(' ')[0]}</h1>
+        <p className="text-muted-foreground text-sm">{greeting},</p>
+        <h1 className="text-2xl font-bold">{userName.split(' ')[0]}</h1>
       </div>
 
       {/* Financial Health Score */}
