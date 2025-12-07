@@ -10,7 +10,9 @@ import Register from "./pages/Register";
 import Index from "./pages/Index";
 import Transactions from "./pages/Transactions";
 import Budget from "./pages/Budget";
+import AddBudget from "./pages/AddBudget";
 import Goals from "./pages/Goals";
+import AddGoal from "./pages/AddGoal";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -61,11 +63,23 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
+      <Route path="/budget/add" element={
+        <ProtectedRoute>
+          <AddBudget />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/goals" element={
         <ProtectedRoute>
           <AppLayout>
             <Goals />
           </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/goals/add" element={
+        <ProtectedRoute>
+          <AddGoal />
         </ProtectedRoute>
       } />
       

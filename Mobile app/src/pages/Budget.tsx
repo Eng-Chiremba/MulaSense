@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Plus, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BudgetProgress } from '@/components/features/BudgetProgress';
@@ -6,13 +7,20 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Budget() {
   const navigate = useNavigate();
+  const [budgets, setBudgets] = useState(mockBudgetCategories);
 
-  const totalBudgeted = mockBudgetCategories.reduce((sum, c) => sum + c.budgetedAmount, 0);
-  const totalSpent = mockBudgetCategories.reduce((sum, c) => sum + c.spentAmount, 0);
+  useEffect(() => {
+    const savedBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    const allBudgets = [...mockBudgetCategories, ...savedBudgets];
+    setBudgets(allBudgets);
+  }, []);
+
+  const totalBudgeted = budgets.reduce((sum, c) => sum + c.budgetedAmount, 0);
+  const totalSpent = budgets.reduce((sum, c) => sum + c.spentAmount, 0);
   const totalRemaining = totalBudgeted - totalSpent;
   const overallPercentage = Math.round((totalSpent / totalBudgeted) * 100);
 
-  const overBudgetCategories = mockBudgetCategories.filter(
+  const overBudgetCategories = budgets.filter(
     c => (c.spentAmount / c.budgetedAmount) >= 0.9
   );
 
@@ -82,12 +90,12 @@ export default function Budget() {
       <div className="grid grid-cols-3 gap-3 animate-fade-up stagger-3">
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
           <p className="text-xs text-muted-foreground">Categories</p>
-          <p className="text-xl font-bold mt-1">{mockBudgetCategories.length}</p>
+          <p className="text-xl font-bold mt-1">{budgets.length}</p>
         </div>
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
           <p className="text-xs text-muted-foreground">On Track</p>
           <p className="text-xl font-bold text-success mt-1">
-            {mockBudgetCategories.filter(c => (c.spentAmount / c.budgetedAmount) < 0.75).length}
+            {budgets.filter(c => (c.spentAmount / c.budgetedAmount) < 0.75).length}
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
@@ -102,7 +110,7 @@ export default function Budget() {
       <div className="space-y-3 animate-fade-up stagger-4">
         <h3 className="font-semibold">Budget Categories</h3>
         <div className="space-y-3">
-          {mockBudgetCategories.map((category) => (
+          {budgets.map((category) => (
             <BudgetProgress 
               key={category.id} 
               category={category}
