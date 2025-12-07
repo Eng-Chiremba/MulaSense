@@ -20,16 +20,16 @@ export const mockUser: User = {
 };
 
 export const transactionCategories: TransactionCategory[] = [
-  { id: '1', name: 'Salary', icon: 'Wallet', color: '#00A651', type: 'income' },
-  { id: '2', name: 'Freelance', icon: 'Briefcase', color: '#10B981', type: 'income' },
-  { id: '3', name: 'Investments', icon: 'TrendingUp', color: '#3B82F6', type: 'income' },
-  { id: '4', name: 'Food & Dining', icon: 'UtensilsCrossed', color: '#F59E0B', type: 'expense' },
-  { id: '5', name: 'Transport', icon: 'Car', color: '#8B5CF6', type: 'expense' },
-  { id: '6', name: 'Shopping', icon: 'ShoppingBag', color: '#EC4899', type: 'expense' },
-  { id: '7', name: 'Bills & Utilities', icon: 'Receipt', color: '#EF4444', type: 'expense' },
-  { id: '8', name: 'Entertainment', icon: 'Gamepad2', color: '#06B6D4', type: 'expense' },
-  { id: '9', name: 'Healthcare', icon: 'Heart', color: '#F43F5E', type: 'expense' },
-  { id: '10', name: 'Education', icon: 'GraduationCap', color: '#6366F1', type: 'expense' },
+  { id: '1', name: 'Salary', icon: 'Wallet', color: '#2D358B', type: 'income' },
+  { id: '2', name: 'Freelance', icon: 'Briefcase', color: '#2D358B', type: 'income' },
+  { id: '3', name: 'Investments', icon: 'TrendingUp', color: '#2D358B', type: 'income' },
+  { id: '4', name: 'Food & Dining', icon: 'UtensilsCrossed', color: '#2D358B', type: 'expense' },
+  { id: '5', name: 'Transport', icon: 'Car', color: '#2D358B', type: 'expense' },
+  { id: '6', name: 'Shopping', icon: 'ShoppingBag', color: '#2D358B', type: 'expense' },
+  { id: '7', name: 'Bills & Utilities', icon: 'Receipt', color: '#2D358B', type: 'expense' },
+  { id: '8', name: 'Entertainment', icon: 'Gamepad2', color: '#2D358B', type: 'expense' },
+  { id: '9', name: 'Healthcare', icon: 'Heart', color: '#2D358B', type: 'expense' },
+  { id: '10', name: 'Education', icon: 'GraduationCap', color: '#2D358B', type: 'expense' },
 ];
 
 export const mockTransactions: Transaction[] = [
@@ -103,7 +103,7 @@ export const mockBudgetCategories: BudgetCategory[] = [
     id: '1',
     name: 'Food & Dining',
     icon: 'UtensilsCrossed',
-    color: '#F59E0B',
+    color: '#2D358B',
     budgetedAmount: 600,
     spentAmount: 420,
     period: 'monthly',
@@ -114,7 +114,7 @@ export const mockBudgetCategories: BudgetCategory[] = [
     id: '2',
     name: 'Transport',
     icon: 'Car',
-    color: '#8B5CF6',
+    color: '#2D358B',
     budgetedAmount: 400,
     spentAmount: 280,
     period: 'monthly',
@@ -125,7 +125,7 @@ export const mockBudgetCategories: BudgetCategory[] = [
     id: '3',
     name: 'Shopping',
     icon: 'ShoppingBag',
-    color: '#EC4899',
+    color: '#2D358B',
     budgetedAmount: 500,
     spentAmount: 480,
     period: 'monthly',
@@ -136,7 +136,7 @@ export const mockBudgetCategories: BudgetCategory[] = [
     id: '4',
     name: 'Entertainment',
     icon: 'Gamepad2',
-    color: '#06B6D4',
+    color: '#2D358B',
     budgetedAmount: 200,
     spentAmount: 120,
     period: 'monthly',
@@ -147,7 +147,7 @@ export const mockBudgetCategories: BudgetCategory[] = [
     id: '5',
     name: 'Bills & Utilities',
     icon: 'Receipt',
-    color: '#EF4444',
+    color: '#2D358B',
     budgetedAmount: 350,
     spentAmount: 340,
     period: 'monthly',
@@ -168,7 +168,7 @@ export const mockGoals: Goal[] = [
     status: 'active',
     category: 'Security',
     icon: 'Shield',
-    color: '#00A651',
+    color: '#2D358B',
   },
   {
     id: '2',
@@ -181,7 +181,7 @@ export const mockGoals: Goal[] = [
     status: 'active',
     category: 'Technology',
     icon: 'Laptop',
-    color: '#3B82F6',
+    color: '#2D358B',
   },
   {
     id: '3',
@@ -194,7 +194,7 @@ export const mockGoals: Goal[] = [
     status: 'active',
     category: 'Travel',
     icon: 'Plane',
-    color: '#F59E0B',
+    color: '#2D358B',
   },
   {
     id: '4',
@@ -207,7 +207,7 @@ export const mockGoals: Goal[] = [
     status: 'active',
     category: 'Debt',
     icon: 'Car',
-    color: '#EF4444',
+    color: '#2D358B',
   },
 ];
 
