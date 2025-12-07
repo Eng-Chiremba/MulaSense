@@ -10,7 +10,7 @@ export function HealthScoreRing({ score, size = 'md', className }: HealthScoreRi
   const radius = size === 'sm' ? 35 : size === 'md' ? 50 : 65;
   const strokeWidth = size === 'sm' ? 6 : size === 'md' ? 8 : 10;
   const circumference = 2 * Math.PI * radius;
-  const progress = (score / 100) * circumference;
+  const progress = (Math.min(score, 100) / 100) * circumference;
   const viewBoxSize = (radius + strokeWidth) * 2;
   
   const getColor = () => {
