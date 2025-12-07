@@ -3,17 +3,31 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Sum
 from django.utils import timezone
-from datetime import timedelta, datetime
-import google.generativeai as genai
+from datetime import timedelta
+import requests
 from django.conf import settings
 from .models import Conversation
 from .serializers import ChatMessageSerializer, ConversationSerializer
 from accounting.models import Transaction
 from budget.models import BudgetCategory, Goal
 
-# Configure Gemini AI
-genai.configure(api_key=getattr(settings, 'GEMINI_API_KEY', 'your-api-key-here'))
-model = genai.GenerativeModel('gemini-pro')
+# OpenRouter API Configuration
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', 'your-api-key-here')
+
+def call_openrouter_ai(prompt, model="meta-llama/llama-3.1-8b-instruct"):
+    """Call OpenRouter AI API"""
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    response = requests.post(OPENROUTER_API_URL, headers=headers, json=data)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
 
 def get_user_financial_context(user):
     """Get user's financial data for AI context"""
@@ -93,8 +107,7 @@ Provide helpful, personalized financial advice based on their data. Keep respons
 """
             
             # Generate AI response
-            response = model.generate_content(prompt)
-            ai_response = response.text
+            ai_response = call_openrouter_ai(prompt)
             
             # Save conversation
             Conversation.objects.create(
@@ -110,9 +123,12 @@ Provide helpful, personalized financial advice based on their data. Keep respons
             })
             
         except Exception as e:
+            print(f"AI Chat Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return Response({
                 'error': 'AI service unavailable',
-                'fallback_response': 'I\'m currently unable to process your request. Please try again later.'
+                'fallback_response': f'I\'m currently unable to process your request. Error: {str(e)}'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -140,8 +156,7 @@ Provide insights about:
 Format as bullet points, be specific and actionable.
 """
         
-        response = model.generate_content(prompt)
-        insights = response.text
+        insights = call_openrouter_ai(prompt)
         
         # Save as conversation
         Conversation.objects.create(
@@ -157,9 +172,10 @@ Format as bullet points, be specific and actionable.
         })
         
     except Exception as e:
+        print(f"AI Insights Error: {str(e)}")
         return Response({
             'error': 'Unable to generate insights',
-            'message': 'Please try again later'
+            'message': str(e)
         }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(['GET'])
@@ -186,8 +202,7 @@ Provide actionable recommendations for:
 Format as numbered list with specific amounts/percentages where possible.
 """
         
-        response = model.generate_content(prompt)
-        recommendations = response.text
+        recommendations = call_openrouter_ai(prompt)
         
         # Save as conversation
         Conversation.objects.create(
@@ -203,9 +218,10 @@ Format as numbered list with specific amounts/percentages where possible.
         })
         
     except Exception as e:
+        print(f"AI Recommendations Error: {str(e)}")
         return Response({
             'error': 'Unable to generate recommendations',
-            'message': 'Please try again later'
+            'message': str(e)
         }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(['GET'])
@@ -279,8 +295,7 @@ Provide:
 Be specific with numbers and actionable recommendations.
 """
         
-        response = model.generate_content(prompt)
-        advice = response.text
+        advice = call_openrouter_ai(prompt)
         
         # Save conversation
         Conversation.objects.create(
@@ -302,7 +317,8 @@ Be specific with numbers and actionable recommendations.
         })
         
     except Exception as e:
+        print(f"AI Business Advisor Error: {str(e)}")
         return Response({
             'error': 'Unable to generate business advice',
-            'fallback': 'Track your daily transactions to get personalized business insights.'
+            'fallback': f'Error: {str(e)}'
         }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
