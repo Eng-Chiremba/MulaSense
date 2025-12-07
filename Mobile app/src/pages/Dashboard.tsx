@@ -41,26 +41,8 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log('=== DASHBOARD FETCH START ===');
-        console.log('Token:', token ? 'exists' : 'missing');
-        
-<<<<<<< HEAD
         const txnRes = await axios.get('http://localhost:8000/api/accounting/transactions/', {
           headers: token ? { Authorization: `Token ${token}` } : {}
-=======
-        const healthScore = summary.monthly_income > 0 
-          ? Math.min(Math.round((summary.net_savings / summary.monthly_income) * 100), 100)
-          : 0;
-        
-        setMetrics({
-          netSavings: summary.net_savings,
-          savingsChange: summary.savings_change,
-          budgetHealthScore: healthScore,
-          monthlyIncome: summary.monthly_income,
-          incomeChange: summary.income_change,
-          totalExpenses: summary.monthly_expenses,
-          expenseChange: summary.expense_change,
->>>>>>> 9c0e339a2566690619d9edb10a0f070dd492c5f8
         });
         
         const allTxns = Array.isArray(txnRes.data) ? txnRes.data : (txnRes.data?.results || []);
