@@ -4,7 +4,7 @@ import {
   PieChart, BarChart3, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { mockDashboardMetrics, mockBudgetCategories, mockTransactions } from '@/data/mockData';
+import { mockTransactions } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
 const periods = ['Week', 'Month', 'Year'];
@@ -39,18 +39,19 @@ const reportTypes = [
 export default function Reports() {
   const [activePeriod, setActivePeriod] = useState('Month');
 
-  const totalIncome = mockDashboardMetrics.monthlyIncome;
-  const totalExpenses = mockDashboardMetrics.totalExpenses;
+  const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+  
+  const totalIncome = budgets.reduce((sum, b) => sum + (b.budgetedAmount || 0), 0);
+  const totalExpenses = budgets.reduce((sum, b) => sum + (b.spentAmount || 0), 0);
   const netBalance = totalIncome - totalExpenses;
-  const savingsRate = Math.round((netBalance / totalIncome) * 100);
+  const savingsRate = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
 
-  // Category data for simple visualization
-  const categoryData = mockBudgetCategories.map(c => ({
+  const categoryData = budgets.map(c => ({
     name: c.name,
-    amount: c.spentAmount,
-    color: c.color,
-    percentage: Math.round((c.spentAmount / totalExpenses) * 100)
-  })).sort((a, b) => b.amount - a.amount);
+    amount: c.spentAmount || 0,
+    color: '#2D358B',
+    percentage: totalExpenses > 0 ? Math.round((c.spentAmount / totalExpenses) * 100) : 0
+  })).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
 
   return (
     <div className="p-4 space-y-6">

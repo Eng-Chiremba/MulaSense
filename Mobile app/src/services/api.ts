@@ -89,13 +89,13 @@ export const goalAPI = {
 
 export const reportAPI = {
   getDashboard: () =>
-    api.get('/reports/dashboard/'),
+    api.get('/accounting/dashboard/'),
   
   getMonthly: (month: string, year: string) =>
-    api.get(`/reports/monthly/?month=${month}&year=${year}`),
+    api.get(`/accounting/reports/monthly-summary/?month=${month}&year=${year}`),
   
   getProfitLoss: (startDate: string, endDate: string) =>
-    api.get(`/reports/profit-loss/?start_date=${startDate}&end_date=${endDate}`),
+    api.get(`/accounting/reports/profit-loss/?start_date=${startDate}&end_date=${endDate}`),
 };
 
 export const aiAPI = {
@@ -124,6 +124,11 @@ export const businessAPI = {
   
   calculateTax: (year: string) =>
     api.get(`/accounting/tax-calculator/?year=${year}`),
+};
+
+export const summaryAPI = {
+  getIncome: () =>
+    api.get('/accounting/summary/?period=month'),
 };
 
 export default api;

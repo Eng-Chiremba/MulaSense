@@ -282,26 +282,44 @@ def expense_analysis_report(request):
 def dashboard_data(request):
     user = request.user
     now = timezone.now()
-    start_date = now.replace(day=1)
+    current_month_start = now.replace(day=1)
+    prev_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
 
-    transactions = Transaction.objects.filter(
+    current_transactions = Transaction.objects.filter(
         user=user,
-        transaction_date__gte=start_date,
+        transaction_date__gte=current_month_start,
+        status='completed'
+    )
+    
+    prev_transactions = Transaction.objects.filter(
+        user=user,
+        transaction_date__gte=prev_month_start,
+        transaction_date__lt=current_month_start,
         status='completed'
     )
 
-    income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    expenses = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    current_income = current_transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    current_expenses = current_transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    prev_income = prev_transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    prev_expenses = prev_transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    income_change = round(((current_income - prev_income) / prev_income * 100) if prev_income > 0 else 0, 1)
+    expense_change = round(((current_expenses - prev_expenses) / prev_expenses * 100) if prev_expenses > 0 else 0, 1)
+    savings_change = round((((current_income - current_expenses) - (prev_income - prev_expenses)) / (prev_income - prev_expenses) * 100) if (prev_income - prev_expenses) > 0 else 0, 1)
 
-    # include recent transactions in dashboard payload for single-call efficiency
     recent = Transaction.objects.filter(user=user).select_related('category').order_by('-transaction_date')[:10]
     recent_serialized = TransactionSerializer(recent, many=True).data
 
     return Response({
         'financial_summary': {
-            'monthly_income': income,
-            'monthly_expenses': expenses,
-            'savings_rate': round((income - expenses) / income * 100 if income > 0 else 0, 1)
+            'monthly_income': current_income,
+            'monthly_expenses': current_expenses,
+            'net_savings': current_income - current_expenses,
+            'savings_rate': round((current_income - current_expenses) / current_income * 100 if current_income > 0 else 0, 1),
+            'income_change': income_change,
+            'expense_change': expense_change,
+            'savings_change': savings_change,
         },
         'recent_transactions': recent_serialized
     })

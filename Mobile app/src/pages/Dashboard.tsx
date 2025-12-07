@@ -37,16 +37,22 @@ export default function Dashboard() {
 
     const fetchData = async () => {
       try {
-        const [dashboardRes, transactionsRes] = await Promise.all([
-          reportAPI.getDashboard(),
-          transactionAPI.getAll(),
-        ]);
+        const dashboardRes = await reportAPI.getDashboard();
+        const summary = dashboardRes.data.financial_summary;
         
-        setMetrics(dashboardRes.data);
-        setTransactions(transactionsRes.data.slice(0, 4));
+        setMetrics({
+          netSavings: summary.net_savings,
+          savingsChange: summary.savings_change,
+          budgetHealthScore: 650,
+          monthlyIncome: summary.monthly_income,
+          incomeChange: summary.income_change,
+          totalExpenses: summary.monthly_expenses,
+          expenseChange: summary.expense_change,
+        });
+        
+        setTransactions(dashboardRes.data.recent_transactions.slice(0, 4));
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
-        // Use mock data if API fails
         setMetrics(mockDashboardMetrics);
         setTransactions(mockTransactions.slice(0, 4));
       } finally {
@@ -69,9 +75,9 @@ export default function Dashboard() {
 
       {/* Financial Health Score */}
       <div className="p-5 rounded-2xl gradient-hero text-primary-foreground animate-fade-up stagger-1">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
-            <p className="text-primary-foreground/80 text-sm font-medium">Financial Health</p>
+            <p className="text-primary-foreground/80 text-sm font-medium">NET INCOME</p>
             <h2 className="text-3xl font-bold mt-1">
               ${metrics.netSavings.toLocaleString()}
             </h2>
@@ -87,11 +93,14 @@ export default function Dashboard() {
               <span className="text-primary-foreground/60 text-xs">vs last month</span>
             </div>
           </div>
-          <HealthScoreRing 
-            score={metrics.budgetHealthScore} 
-            size="md"
-            className="[&_span]:text-primary-foreground [&>span]:text-primary-foreground/90"
-          />
+          <div className="flex flex-col items-center">
+            <p className="text-primary-foreground/80 text-xs font-medium mb-2">Financial Health</p>
+            <HealthScoreRing 
+              score={metrics.budgetHealthScore} 
+              size="md"
+              className="[&_span]:text-primary-foreground [&>span]:text-primary-foreground/90"
+            />
+          </div>
         </div>
       </div>
 
