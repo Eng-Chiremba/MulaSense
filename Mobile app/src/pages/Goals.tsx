@@ -2,27 +2,39 @@ import { Plus, Target, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GoalCard } from '@/components/features/GoalCard';
 import { mockGoals } from '@/data/mockData';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const statusFilters = ['Active', 'Completed', 'All'];
 
+const priorityOrder = { high: 1, medium: 2, low: 3 };
+
 export default function Goals() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeFilter, setActiveFilter] = useState('Active');
+  const [goals, setGoals] = useState(mockGoals);
 
-  const filteredGoals = mockGoals.filter(g => {
-    if (activeFilter === 'All') return true;
-    return g.status === activeFilter.toLowerCase();
-  });
+  useEffect(() => {
+    const savedGoals = JSON.parse(localStorage.getItem('goals') || '[]');
+    const allGoals = [...mockGoals, ...savedGoals];
+    setGoals(allGoals);
+  }, [location]);
 
-  const totalTargetAmount = mockGoals.reduce((sum, g) => sum + g.targetAmount, 0);
-  const totalSavedAmount = mockGoals.reduce((sum, g) => sum + g.currentAmount, 0);
+  const filteredGoals = goals
+    .filter(g => {
+      if (activeFilter === 'All') return true;
+      return g.status === activeFilter.toLowerCase();
+    })
+    .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  const totalTargetAmount = goals.reduce((sum, g) => sum + g.targetAmount, 0);
+  const totalSavedAmount = goals.reduce((sum, g) => sum + g.currentAmount, 0);
   const overallProgress = Math.round((totalSavedAmount / totalTargetAmount) * 100);
 
-  const activeGoals = mockGoals.filter(g => g.status === 'active');
-  const completedGoals = mockGoals.filter(g => g.status === 'completed');
+  const activeGoals = goals.filter(g => g.status === 'active');
+  const completedGoals = goals.filter(g => g.status === 'completed');
 
   return (
     <div className="p-4 space-y-6">

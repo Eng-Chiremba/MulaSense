@@ -24,7 +24,7 @@ def calculate_ai_score(profile):
     
     final_score = base_score + savings_points + txn_points + stability_points
     
-    return min(int(final_score), 900)
+    return min(int(final_score), 850)
 
 
 def generate_credit_analysis(user):
