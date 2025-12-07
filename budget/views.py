@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Avg, Count
 from decimal import Decimal
 from .models import BudgetCategory, Goal, GoalContribution
+from .loan_models import FinancialHealthScore, LoanApplication, LoanRepayment
 from .serializers import BudgetCategorySerializer, GoalSerializer, GoalContributionSerializer
 from .permissions import IsBudgetOwner, IsGoalOwner, IsGoalContributionOwner
 
@@ -160,6 +161,168 @@ def category_analytics(request):
         })
     
     return Response({'categories': category_data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def calculate_financial_health_score(request):
+    """Calculate financial health score based on user's financial data"""
+    from accounting.models import Transaction
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    user = request.user
+    
+    # Get last 3 months data
+    three_months_ago = timezone.now() - timedelta(days=90)
+    transactions = Transaction.objects.filter(user=user, transaction_date__gte=three_months_ago)
+    
+    # Calculate metrics
+    income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    expenses = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # Income stability (20 points)
+    income_stability = min(20, int((income / 3000) * 20)) if income > 0 else 0
+    
+    # Expense ratio (25 points) - lower is better
+    expense_ratio = 25 - min(25, int((expenses / income) * 25)) if income > 0 else 0
+    
+    # Savings rate (25 points)
+    savings = income - expenses
+    savings_rate = min(25, int((savings / income) * 25)) if income > 0 else 0
+    
+    # Budget adherence (20 points)
+    budgets = BudgetCategory.objects.filter(user=user, is_active=True)
+    budget_adherence = 0
+    if budgets.exists():
+        over_budget = budgets.filter(spent_amount__gt=models.F('budgeted_amount')).count()
+        budget_adherence = max(0, 20 - (over_budget * 5))
+    
+    # Debt ratio (10 points) - assume no debt for now
+    debt_ratio = 10
+    
+    # Total score
+    total_score = income_stability + expense_ratio + savings_rate + budget_adherence + debt_ratio
+    
+    # Save or update score
+    health_score, created = FinancialHealthScore.objects.update_or_create(
+        user=user,
+        defaults={
+            'score': total_score,
+            'income_stability': income_stability,
+            'expense_ratio': expense_ratio,
+            'savings_rate': savings_rate,
+            'debt_ratio': debt_ratio,
+            'budget_adherence': budget_adherence,
+        }
+    )
+    
+    # Calculate loan limit based on score
+    if total_score >= 80:
+        loan_limit = income * 3
+    elif total_score >= 60:
+        loan_limit = income * 2
+    elif total_score >= 40:
+        loan_limit = income * 1
+    else:
+        loan_limit = income * 0.5
+    
+    return Response({
+        'score': total_score,
+        'breakdown': {
+            'income_stability': income_stability,
+            'expense_ratio': expense_ratio,
+            'savings_rate': savings_rate,
+            'budget_adherence': budget_adherence,
+            'debt_ratio': debt_ratio,
+        },
+        'loan_limit': float(loan_limit),
+        'rating': 'Excellent' if total_score >= 80 else 'Good' if total_score >= 60 else 'Fair' if total_score >= 40 else 'Poor'
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def apply_for_loan(request):
+    """Apply for a Kashagi loan"""
+    from django.utils import timezone
+    
+    user = request.user
+    amount = Decimal(str(request.data.get('amount', 0)))
+    duration = int(request.data.get('duration_months', 12))
+    
+    # Get or calculate health score
+    try:
+        health_score = FinancialHealthScore.objects.get(user=user)
+    except FinancialHealthScore.DoesNotExist:
+        # Calculate score first
+        score_response = calculate_financial_health_score(request)
+        health_score = FinancialHealthScore.objects.get(user=user)
+    
+    # Determine approval and interest rate
+    if health_score.score >= 80:
+        approved = True
+        interest_rate = Decimal('3.5')
+    elif health_score.score >= 60:
+        approved = True
+        interest_rate = Decimal('5.0')
+    elif health_score.score >= 40:
+        approved = True
+        interest_rate = Decimal('7.5')
+    else:
+        approved = False
+        interest_rate = Decimal('10.0')
+    
+    # Calculate monthly payment
+    if approved:
+        monthly_rate = interest_rate / 100 / 12
+        monthly_payment = amount * (monthly_rate * (1 + monthly_rate) ** duration) / ((1 + monthly_rate) ** duration - 1)
+    else:
+        monthly_payment = None
+    
+    # Create loan application
+    loan = LoanApplication.objects.create(
+        user=user,
+        amount_requested=amount,
+        amount_approved=amount if approved else None,
+        interest_rate=interest_rate,
+        duration_months=duration,
+        monthly_payment=monthly_payment,
+        status='approved' if approved else 'rejected',
+        health_score_at_application=health_score.score,
+        approval_date=timezone.now() if approved else None
+    )
+    
+    return Response({
+        'loan_id': loan.id,
+        'status': loan.status,
+        'amount_requested': float(amount),
+        'amount_approved': float(loan.amount_approved) if loan.amount_approved else None,
+        'interest_rate': float(interest_rate),
+        'duration_months': duration,
+        'monthly_payment': float(monthly_payment) if monthly_payment else None,
+        'health_score': health_score.score
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_loan_applications(request):
+    """Get user's loan applications"""
+    loans = LoanApplication.objects.filter(user=request.user)
+    
+    loan_data = []
+    for loan in loans:
+        loan_data.append({
+            'id': loan.id,
+            'amount_requested': float(loan.amount_requested),
+            'amount_approved': float(loan.amount_approved) if loan.amount_approved else None,
+            'interest_rate': float(loan.interest_rate),
+            'duration_months': loan.duration_months,
+            'monthly_payment': float(loan.monthly_payment) if loan.monthly_payment else None,
+            'status': loan.status,
+            'application_date': loan.application_date,
+            'health_score': loan.health_score_at_application
+        })
+    
+    return Response({'loans': loan_data})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

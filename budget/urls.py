@@ -22,4 +22,9 @@ urlpatterns = [
     path('analytics/overview/', views.budget_overview, name='budget-overview'),
     path('analytics/categories/', views.category_analytics, name='category-analytics'),
     path('analytics/goals/', views.goal_analytics, name='goal-analytics'),
+    
+    # Kashagi (Loan)
+    path('loan/health-score/', views.calculate_financial_health_score, name='financial-health-score'),
+    path('loan/apply/', views.apply_for_loan, name='apply-loan'),
+    path('loan/applications/', views.get_loan_applications, name='loan-applications'),
 ]

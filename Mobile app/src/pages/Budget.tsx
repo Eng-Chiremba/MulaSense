@@ -56,12 +56,20 @@ export default function Budget() {
           <h1 className="text-2xl font-bold">Budget</h1>
           <p className="text-sm text-muted-foreground">Manage your spending limits</p>
         </div>
-        <Button 
-          size="icon"
-          onClick={() => navigate('/budget/add')}
-        >
-          <Plus className="w-5 h-5" />
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/budget/kashagi')}
+          >
+            Get Kashagi
+          </Button>
+          <Button 
+            size="icon"
+            onClick={() => navigate('/budget/add')}
+          >
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Overview Card */}

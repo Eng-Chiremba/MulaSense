@@ -26,6 +26,7 @@ import AIInsights from "./pages/AIInsights";
 import AIAdvisor from "./pages/AIAdvisor";
 import AddTransaction from "./pages/AddTransaction";
 import AddBudget from "./pages/AddBudget";
+import Kashagi from "./pages/Kashagi";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,14 @@ function AppRoutes() {
       <Route path="/budget/add" element={
         <ProtectedRoute>
           <AddBudget />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/budget/kashagi" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Kashagi />
+          </AppLayout>
         </ProtectedRoute>
       } />
       
