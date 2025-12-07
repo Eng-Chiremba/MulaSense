@@ -11,7 +11,8 @@ MulaSense is a full-stack financial management application that provides budgeti
 - User authentication and authorization with role-based permissions
 - Budget planning and tracking
 - Accounting and transaction management
-- AI-powered financial insights and recommendations
+- **🤖 AI-powered financial advisor with real-time chat**
+- **💡 Automated financial insights and personalized recommendations**
 - Comprehensive reporting with PDF and Excel export
 - Cross-platform mobile application (Android/iOS)
 - RESTful API with token authentication
@@ -118,15 +119,28 @@ The API is accessible at `http://localhost:8000/api/` and includes the following
 - `/api/users/` - User management
 - `/api/budget/` - Budget operations
 - `/api/accounting/` - Accounting transactions
-- `/api/ai/` - AI-powered insights
+- `/api/ai/` - AI-powered insights and chat
+  - `POST /api/ai/chat/` - Interactive AI chat
+  - `GET /api/ai/insights/` - Financial insights
+  - `GET /api/ai/recommendations/` - Personalized recommendations
+  - `GET /api/ai/conversations/` - Chat history
+  - `POST /api/ai/business-advisor/` - Business advice
 - `/api/reports/` - Report generation
+
+## AI Financial Advisor Setup
+
+1. Get your OpenRouter API key from [OpenRouter](https://openrouter.ai/keys)
+2. Edit `.env` file and add your key: `OPENROUTER_API_KEY=your-key-here`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Start backend: `python manage.py runserver`
+5. Start frontend: `cd "Mobile app" && npm run dev`
 
 ## Configuration
 
 ### Backend Configuration
 - Configure database settings in `MulaSense/settings.py`
 - Set up CORS origins for frontend communication
-- Configure AI API keys in environment variables
+- Configure AI API keys in environment variables (see AI setup above)
 
 ### Mobile App Configuration
 - Update API endpoints in the mobile app configuration

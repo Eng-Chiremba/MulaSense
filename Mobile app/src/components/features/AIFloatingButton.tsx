@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { MessageSquare, X, Send } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { MessageSquare, X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { aiAPI } from '@/services/api';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: string;
@@ -20,26 +22,57 @@ export function AIFloatingButton() {
       content: 'Hello! I\'m your AI Financial Advisor. How can I help you today?',
     },
   ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!message.trim() || isLoading) return;
+    
+    const userMessage = message;
+    setMessage('');
     
     setMessages(prev => [...prev, {
       id: Date.now().toString(),
       role: 'user',
-      content: message,
+      content: userMessage,
     }]);
     
-    // Simulate AI response
-    setTimeout(() => {
+    setIsLoading(true);
+    
+    try {
+      const response = await aiAPI.chat(userMessage);
+      
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Based on your spending patterns, I recommend following the 50/30/20 rule: 50% on needs, 30% on wants, and 20% on savings. Would you like me to analyze your budget in detail?',
+        content: response.data.response,
       }]);
-    }, 1000);
-    
-    setMessage('');
+    } catch (error: any) {
+      const fallbackMessage = error.response?.data?.fallback_response || 
+        'I\'m having trouble connecting right now. Please try again later.';
+      
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: fallbackMessage,
+      }]);
+      
+      toast({
+        title: 'Connection Issue',
+        description: 'Using fallback response. Check your connection.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -90,7 +123,7 @@ export function AIFloatingButton() {
                 )}
               >
                 <div className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
+                  "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap",
                   msg.role === 'user' 
                     ? "bg-primary text-primary-foreground rounded-br-md"
                     : "bg-muted text-foreground rounded-bl-md"
@@ -99,6 +132,14 @@ export function AIFloatingButton() {
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-2xl px-4 py-2.5 rounded-bl-md">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
@@ -108,11 +149,12 @@ export function AIFloatingButton() {
                 placeholder="Ask me anything..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                disabled={isLoading}
                 className="flex-1"
               />
-              <Button size="icon" onClick={handleSend}>
-                <Send className="w-4 h-4" />
+              <Button size="icon" onClick={handleSend} disabled={isLoading || !message.trim()}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
           </div>

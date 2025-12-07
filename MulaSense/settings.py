@@ -162,6 +162,13 @@ CORS_ALLOWED_METHODS = [
     'PUT',
 ]
 
+# OpenRouter AI Configuration
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', 'your-api-key-here')
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

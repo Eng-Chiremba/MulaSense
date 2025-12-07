@@ -20,6 +20,7 @@ import BusinessReports from "./pages/business/BusinessReports";
 import ProfitLoss from "./pages/business/ProfitLoss";
 import TaxCalculator from "./pages/business/TaxCalculator";
 import CreditLine from "./pages/business/CreditLine";
+import AIInsights from "./pages/AIInsights";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <Settings />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/ai-insights" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AIInsights />
           </AppLayout>
         </ProtectedRoute>
       } />

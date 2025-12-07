@@ -95,6 +95,15 @@ export const aiAPI = {
   
   getInsights: () =>
     api.get('/ai/insights/'),
+  
+  getRecommendations: () =>
+    api.get('/ai/recommendations/'),
+  
+  getConversationHistory: () =>
+    api.get('/ai/conversations/'),
+  
+  getBusinessAdvice: () =>
+    api.post('/ai/business-advisor/'),
 };
 
 export const businessAPI = {

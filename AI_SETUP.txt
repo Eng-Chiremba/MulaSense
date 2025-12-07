@@ -1,0 +1,27 @@
+AI FINANCIAL ADVISOR SETUP
+===========================
+
+1. Get OpenRouter API Key:
+   - Visit: https://openrouter.ai/keys
+   - Sign in and create API key
+
+2. Configure:
+   - Edit .env file
+   - Replace: OPENROUTER_API_KEY=your-openrouter-api-key-here
+   - With your actual key
+
+3. Install dependencies:
+   pip install -r requirements.txt
+
+4. Run migrations:
+   python manage.py migrate
+
+5. Start server:
+   python manage.py runserver
+
+6. Test AI endpoints:
+   - POST /api/ai/chat/
+   - GET /api/ai/insights/
+   - GET /api/ai/recommendations/
+
+Done! AI is integrated in the backend using OpenRouter.
