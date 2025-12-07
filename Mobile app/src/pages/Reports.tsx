@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FileBarChart, Download, Calendar, TrendingUp, TrendingDown,
   PieChart, BarChart3, ArrowRight
@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { mockTransactions } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { reportAPI } from '@/services/api';
 
 const periods = ['Week', 'Month', 'Year'];
 
@@ -38,14 +39,29 @@ const reportTypes = [
 
 export default function Reports() {
   const [activePeriod, setActivePeriod] = useState('Month');
+  const [summary, setSummary] = useState({ monthly_income: 0, monthly_expenses: 0, savings_rate: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const response = await reportAPI.getDashboard();
+        setSummary(response.data.financial_summary);
+      } catch (error) {
+        console.error('Failed to fetch reports data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
+  const totalIncome = summary.monthly_income;
+  const totalExpenses = summary.monthly_expenses;
+  const netBalance = totalIncome - totalExpenses;
+  const savingsRate = summary.savings_rate;
 
   const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-  
-  const totalIncome = budgets.reduce((sum, b) => sum + (b.budgetedAmount || 0), 0);
-  const totalExpenses = budgets.reduce((sum, b) => sum + (b.spentAmount || 0), 0);
-  const netBalance = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
-
   const categoryData = budgets.map(c => ({
     name: c.name,
     amount: c.spentAmount || 0,
