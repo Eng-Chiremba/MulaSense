@@ -35,25 +35,107 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={isAuthenticated ? <Navigate to="/" /> : <Register />} />
+      
       <Route path="/" element={
         <ProtectedRoute>
           <AppLayout>
-            <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/budget" element={<Budget />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/business" element={<BusinessDashboard />} />
-            <Route path="/business/reports" element={<BusinessReports />} />
-            <Route path="/business/reports/profit-loss" element={<ProfitLoss />} />
-            <Route path="/business/tax" element={<TaxCalculator />} />
-            <Route path="/business/credit" element={<CreditLine />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Index />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/transactions" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Transactions />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/budget" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Budget />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/goals" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Goals />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Reports />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Profile />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Settings />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/business" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <BusinessDashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/business/reports" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <BusinessReports />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/business/reports/profit-loss" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <ProfitLoss />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/business/tax" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <TaxCalculator />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/business/credit" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <CreditLine />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="*" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <NotFound />
           </AppLayout>
         </ProtectedRoute>
       } />
