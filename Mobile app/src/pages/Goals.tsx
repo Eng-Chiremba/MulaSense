@@ -34,6 +34,14 @@ export default function Goals() {
   const activeGoals = goals.filter(g => g.status === 'active');
   const completedGoals = goals.filter(g => g.status === 'completed');
 
+  const handleUpdateGoal = (goalId: string, newAmount: number) => {
+    const updatedGoals = goals.map(g => 
+      g.id === goalId ? { ...g, currentAmount: newAmount } : g
+    );
+    localStorage.setItem('goals', JSON.stringify(updatedGoals));
+    setGoals(updatedGoals);
+  };
+
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
@@ -116,11 +124,12 @@ export default function Goals() {
       <div className="space-y-4 animate-fade-up stagger-4">
         {filteredGoals.length > 0 ? (
           filteredGoals.map((goal) => (
-            <div key={goal.id} onClick={() => navigate(`/goals/edit/${goal.id}`)} className="cursor-pointer">
-              <GoalCard 
-                goal={goal}
-              />
-            </div>
+            <GoalCard 
+              key={goal.id}
+              goal={goal}
+              onUpdate={handleUpdateGoal}
+              onClick={() => navigate(`/goals/edit/${goal.id}`)}
+            />
           ))
         ) : (
           <div className="text-center py-12">
