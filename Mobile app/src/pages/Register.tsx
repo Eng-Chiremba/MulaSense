@@ -146,7 +146,7 @@ export default function Register() {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="fullName"
-                      placeholder="John Doe"
+                      placeholder="Chessmore Chiremba"
                       value={individualData.fullName}
                       onChange={(e) => setIndividualData({ ...individualData, fullName: e.target.value })}
                       className="pl-10"
@@ -178,7 +178,7 @@ export default function Register() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="john@example.com"
+                      placeholder="chiremba@example.com"
                       value={individualData.email}
                       onChange={(e) => setIndividualData({ ...individualData, email: e.target.value })}
                       className="pl-10"
@@ -258,7 +258,7 @@ export default function Register() {
                     <Input
                       id="businessEmail"
                       type="email"
-                      placeholder="info@techstart.com"
+                      placeholder="info@example.com"
                       value={businessData.businessEmail}
                       onChange={(e) => setBusinessData({ ...businessData, businessEmail: e.target.value })}
                       className="pl-10"

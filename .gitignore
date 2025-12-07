@@ -51,3 +51,14 @@ build/
 # Capacitor
 android/
 ios/
+
+# Documentation and setup files
+Mobile app/.env.example
+Mobile app/LOGO_SETUP.md
+Mobile app/MOBILE_SETUP.md
+Mobile app/QUICK_START.md
+Mobile app/setup-mobile.bat
+api_overview.py
+checklist.md
+setup_test_data.py
+start_dev.bat
