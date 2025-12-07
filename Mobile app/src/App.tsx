@@ -21,6 +21,7 @@ import ProfitLoss from "./pages/business/ProfitLoss";
 import TaxCalculator from "./pages/business/TaxCalculator";
 import CreditLine from "./pages/business/CreditLine";
 import AIInsights from "./pages/AIInsights";
+import AddTransaction from "./pages/AddTransaction";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <Transactions />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/transactions/add" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AddTransaction />
           </AppLayout>
         </ProtectedRoute>
       } />

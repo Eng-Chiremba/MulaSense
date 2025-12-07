@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Plus, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TransactionItem } from '@/components/features/TransactionItem';
 import { mockTransactions } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { transactionAPI } from '@/services/api';
 
 const filters = ['All', 'Income', 'Expense', 'Transfer'];
 
@@ -13,21 +14,39 @@ export default function Transactions() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTransactions = mockTransactions.filter(t => {
-    const matchesFilter = activeFilter === 'All' || t.type.toLowerCase() === activeFilter.toLowerCase();
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await transactionAPI.getAll();
+      setTransactions(response.data.results || response.data);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+      setTransactions(mockTransactions);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTransactions = transactions.filter(t => {
+    const matchesFilter = activeFilter === 'All' || t.transaction_type?.toLowerCase() === activeFilter.toLowerCase();
     const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         t.category.name.toLowerCase().includes(searchQuery.toLowerCase());
+                         t.category?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const totalIncome = mockTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = transactions
+    .filter(t => t.transaction_type === 'income')
+    .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
   
-  const totalExpense = mockTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = transactions
+    .filter(t => t.transaction_type === 'expense')
+    .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
 
   return (
     <div className="p-4 space-y-4">
@@ -92,12 +111,19 @@ export default function Transactions() {
 
       {/* Transaction List */}
       <div className="space-y-2 animate-fade-up stagger-4">
-        {filteredTransactions.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : filteredTransactions.length > 0 ? (
           <div className="bg-card rounded-2xl shadow-card border border-border/50 divide-y divide-border">
             {filteredTransactions.map((transaction) => (
               <TransactionItem 
                 key={transaction.id} 
-                transaction={transaction}
+                transaction={{
+                  ...transaction,
+                  type: transaction.transaction_type,
+                }}
                 onClick={() => navigate(`/transactions/${transaction.id}`)}
               />
             ))}
@@ -105,6 +131,14 @@ export default function Transactions() {
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No transactions found</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => navigate('/transactions/add')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Transaction
+            </Button>
           </div>
         )}
       </div>
