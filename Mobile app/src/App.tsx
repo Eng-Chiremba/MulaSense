@@ -10,7 +10,6 @@ import Register from "./pages/Register";
 import Index from "./pages/Index";
 import Transactions from "./pages/Transactions";
 import Budget from "./pages/Budget";
-import AddBudget from "./pages/AddBudget";
 import Goals from "./pages/Goals";
 import AddGoal from "./pages/AddGoal";
 import EditGoal from "./pages/EditGoal";
@@ -63,14 +62,6 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <AddTransaction />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/budget/add" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <AddBudget />
           </AppLayout>
         </ProtectedRoute>
       } />

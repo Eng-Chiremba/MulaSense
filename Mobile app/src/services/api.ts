@@ -11,6 +11,8 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  console.log('API Request:', config.method?.toUpperCase(), config.url);
+  console.log('Token:', token ? `${token.substring(0, 10)}...` : 'NO TOKEN');
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
@@ -18,9 +20,16 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.url, 'Status:', response.status);
+    console.log('Response data:', response.data);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', error.config?.url, 'Status:', error.response?.status);
+    console.error('Error data:', error.response?.data);
     if (error.response?.status === 401) {
+      console.error('Unauthorized - redirecting to login');
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

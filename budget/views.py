@@ -14,9 +14,13 @@ class BudgetCategoryListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return BudgetCategory.objects.filter(user=self.request.user, is_active=True)
+        queryset = BudgetCategory.objects.filter(user=self.request.user, is_active=True)
+        print(f'Budget API - User: {self.request.user.username} (ID: {self.request.user.id})')
+        print(f'Budget API - Queryset count: {queryset.count()}')
+        return queryset
     
     def perform_create(self, serializer):
+        print(f'Creating budget for user: {self.request.user.username}')
         serializer.save(user=self.request.user)
 
 class BudgetCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -96,6 +100,19 @@ def add_goal_contribution(request, goal_id):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # Budget Analytics Endpoints
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user_info(request):
+    """Debug endpoint to check current authenticated user"""
+    user = request.user
+    budgets = BudgetCategory.objects.filter(user=user, is_active=True)
+    return Response({
+        'user_id': user.id,
+        'username': user.username,
+        'budget_count': budgets.count(),
+        'budgets': [{'id': b.id, 'name': b.name, 'amount': b.budgeted_amount} for b in budgets]
+    })
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_overview(request):

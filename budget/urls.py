@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Debug
+    path('debug/current-user/', views.current_user_info, name='current-user-info'),
+    
     # Budget Categories
     path('categories/', views.BudgetCategoryListCreateView.as_view(), name='budget-category-list-create'),
     path('categories/<int:pk>/', views.BudgetCategoryDetailView.as_view(), name='budget-category-detail'),

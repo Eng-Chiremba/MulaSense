@@ -46,24 +46,29 @@ export default function AddBudget() {
 
     setLoading(true);
     try {
+      const today = new Date();
+      const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      
       const budgetData = {
         name: formData.name,
         budgeted_amount: parseFloat(formData.budgetedAmount),
         spent_amount: 0,
-        priority: formData.priority,
-        is_bill: formData.isBill,
-        auto_pay_bill: formData.autoPayBill,
-        bill_due_date: formData.billDueDate || null,
+        period: 'monthly',
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
       };
 
-      await budgetAPI.createCategory(budgetData);
+      console.log('Sending budget data:', budgetData);
+      const response = await budgetAPI.createCategory(budgetData);
+      console.log('Budget created:', response.data);
       
       toast({
         title: 'Success',
         description: 'Budget category created successfully',
       });
       
-      navigate('/budget');
+      navigate('/budget', { replace: true });
     } catch (error: any) {
       toast({
         title: 'Error',
