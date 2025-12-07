@@ -32,7 +32,7 @@ export default function AddBudget() {
     billDueDate: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.budgetedAmount) {
@@ -44,40 +44,27 @@ export default function AddBudget() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const today = new Date();
-      const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      
-      const budgetData = {
-        name: formData.name,
-        budgeted_amount: parseFloat(formData.budgetedAmount),
-        spent_amount: 0,
-        period: 'monthly',
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
-      };
+    const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    const newBudget = {
+      id: Date.now().toString(),
+      name: formData.name,
+      budgetedAmount: parseFloat(formData.budgetedAmount),
+      spentAmount: 0,
+      icon: '💰',
+      priority: formData.priority,
+      isBill: formData.isBill,
+      autoPayBill: formData.autoPayBill,
+      billDueDate: formData.billDueDate,
+    };
 
-      console.log('Sending budget data:', budgetData);
-      const response = await budgetAPI.createCategory(budgetData);
-      console.log('Budget created:', response.data);
-      
-      toast({
-        title: 'Success',
-        description: 'Budget category created successfully',
-      });
-      
-      navigate('/budget', { replace: true });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to create budget',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+    budgets.push(newBudget);
+    localStorage.setItem('budgets', JSON.stringify(budgets));
+    
+    toast({
+      title: 'Budget created successfully',
+    });
+    
+    navigate('/budget');
   };
 
   return (

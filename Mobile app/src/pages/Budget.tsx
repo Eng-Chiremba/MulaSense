@@ -15,48 +15,17 @@ export default function Budget() {
   const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
-    fetchBudgets();
-    fetchAIAdvice();
-  }, []);
-
-  useEffect(() => {
-    const handleFocus = () => fetchBudgets();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
-
-  const fetchBudgets = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
-      console.log('Current token:', token);
-      console.log('Current user:', user);
-      
-      const response = await budgetAPI.getCategories();
-      console.log('Budget API response:', response.data);
-      console.log('Number of budgets returned:', response.data?.length || 0);
-      const apiData = Array.isArray(response.data) ? response.data : [];
-      const formattedData = apiData.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        budgetedAmount: item.budgeted_amount || 0,
-        spentAmount: item.spent_amount || 0,
-        icon: '💰',
-        priority: item.priority,
-        isBill: item.is_bill,
-        autoPayBill: item.auto_pay_bill,
-      }));
-      console.log('Formatted budgets:', formattedData);
-      setBudgets(formattedData);
-    } catch (error: any) {
-      console.error('Failed to fetch budgets:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      setBudgets([]);
-    } finally {
-      setLoading(false);
+    const savedBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    setBudgets(savedBudgets);
+    setLoading(false);
+    if (savedBudgets.length > 0) {
+      fetchAIAdvice();
     }
-  };
+  }, []);
+
+
+
+
 
   const fetchAIAdvice = async () => {
     setLoadingAI(true);
