@@ -1,73 +1,88 @@
-# Welcome to your Lovable project
+# MulaSense Mobile App
 
-## Project info
+## Setup Instructions
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+- Django backend running on http://localhost:8000
 
-## How can I edit this code?
+### Installation
 
-There are several ways of editing your application.
+1. Install dependencies:
+```bash
+npm install
+```
 
-**Use Lovable**
+2. Configure API URL:
+Edit `.env` file and set your backend URL:
+```
+VITE_API_BASE_URL=http://localhost:8000/api
+```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Backend Connection
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The app will automatically:
+- Try to connect to the backend API
+- Fall back to mock data if backend is unavailable
+- Show loading states while fetching data
 
-**Use GitHub Codespaces**
+### Running with Backend
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Start Django backend:
+```bash
+cd ..
+python manage.py runserver
+```
 
-## What technologies are used for this project?
+2. Start frontend (in another terminal):
+```bash
+npm run dev
+```
 
-This project is built with:
+### Running with Mock Data Only
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+If you want to test without the backend:
+- The app will automatically use mock data when API calls fail
+- All pages will work with sample data
 
-## How can I deploy this project?
+### Features
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- **Dashboard**: Financial overview with metrics
+- **Transactions**: Income/expense tracking
+- **Budget**: Budget planning and monitoring
+- **Goals**: Financial goal tracking
+- **Reports**: Financial analytics and reports
+- **Profile**: User profile management
+- **Settings**: App preferences
 
-## Can I connect a custom domain to my Lovable project?
+### Authentication
 
-Yes, you can!
+Default test credentials (if backend is running):
+- Phone: +263 77 123 4567
+- Password: test123
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Or create a new account via the Register page.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Troubleshooting
+
+**Blank pages:**
+- Check browser console for errors
+- Ensure backend is running on correct port
+- Check `.env` file has correct API URL
+- Clear browser cache and localStorage
+
+**API errors:**
+- Verify Django backend is running
+- Check CORS settings in Django
+- Ensure token authentication is configured
+
+**Mock data not showing:**
+- Check browser console for JavaScript errors
+- Verify all dependencies are installed
+- Try clearing node_modules and reinstalling
