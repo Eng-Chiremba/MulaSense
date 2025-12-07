@@ -1,27 +1,66 @@
 import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Plus, TrendingUp, AlertTriangle, Sparkles, Calendar, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BudgetProgress } from '@/components/features/BudgetProgress';
-import { mockBudgetCategories } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { budgetAPI, aiAPI } from '@/services/api';
+import { toast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export default function Budget() {
   const navigate = useNavigate();
-  const [budgets, setBudgets] = useState(mockBudgetCategories);
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [aiAdvice, setAiAdvice] = useState<string>('');
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
-    const savedBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-    const allBudgets = [...mockBudgetCategories, ...savedBudgets];
-    setBudgets(allBudgets);
+    fetchBudgets();
+    fetchAIAdvice();
   }, []);
 
-  const totalBudgeted = budgets.reduce((sum, c) => sum + c.budgetedAmount, 0);
-  const totalSpent = budgets.reduce((sum, c) => sum + c.spentAmount, 0);
+  const fetchBudgets = async () => {
+    try {
+      const response = await budgetAPI.getCategories();
+      const apiData = Array.isArray(response.data) ? response.data : [];
+      const formattedData = apiData.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        budgetedAmount: item.budgeted_amount || 0,
+        spentAmount: item.spent_amount || 0,
+        icon: '💰',
+        priority: item.priority,
+        isBill: item.is_bill,
+        autoPayBill: item.auto_pay_bill,
+      }));
+      setBudgets(formattedData);
+    } catch (error) {
+      console.error('Failed to fetch budgets:', error);
+      setBudgets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAIAdvice = async () => {
+    setLoadingAI(true);
+    try {
+      const response = await aiAPI.chat('Analyze my budget and provide recommendations for cuts and improvements');
+      setAiAdvice(response.data.response || 'No recommendations available at this time.');
+    } catch (error) {
+      console.error('Failed to fetch AI advice:', error);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
+  const totalBudgeted = budgets.reduce((sum, c) => sum + (c.budgetedAmount || 0), 0);
+  const totalSpent = budgets.reduce((sum, c) => sum + (c.spentAmount || 0), 0);
   const totalRemaining = totalBudgeted - totalSpent;
-  const overallPercentage = Math.round((totalSpent / totalBudgeted) * 100);
+  const overallPercentage = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
 
   const overBudgetCategories = budgets.filter(
-    c => (c.spentAmount / c.budgetedAmount) >= 0.9
+    c => c.budgetedAmount > 0 && (c.spentAmount / c.budgetedAmount) >= 0.9
   );
 
   return (
@@ -73,7 +112,7 @@ export default function Budget() {
 
       {/* Alerts */}
       {overBudgetCategories.length > 0 && (
-        <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 animate-fade-up stagger-2">
+        <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 animate-fade-up stagger-3">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
             <div>
@@ -87,7 +126,7 @@ export default function Budget() {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3 animate-fade-up stagger-3">
+      <div className="grid grid-cols-3 gap-3 animate-fade-up stagger-2">
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
           <p className="text-xs text-muted-foreground">Categories</p>
           <p className="text-xl font-bold mt-1">{budgets.length}</p>
@@ -95,7 +134,7 @@ export default function Budget() {
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
           <p className="text-xs text-muted-foreground">On Track</p>
           <p className="text-xl font-bold text-success mt-1">
-            {budgets.filter(c => (c.spentAmount / c.budgetedAmount) < 0.75).length}
+            {budgets.filter(c => c.budgetedAmount > 0 && (c.spentAmount / c.budgetedAmount) < 0.75).length}
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card shadow-card border border-border/50 text-center">
@@ -106,17 +145,86 @@ export default function Budget() {
         </div>
       </div>
 
+      {/* Bills Section */}
+      {budgets.filter(b => b.isBill).length > 0 && (
+        <div className="space-y-3 animate-fade-up stagger-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Recurring Bills
+            </h3>
+            <Badge variant="secondary">{budgets.filter(b => b.isBill).length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {budgets.filter(b => b.isBill).map((bill) => (
+              <div key={bill.id} className="p-3 rounded-xl bg-card border flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">{bill.name}</p>
+                  <p className="text-xs text-muted-foreground">${bill.budgetedAmount}/month</p>
+                </div>
+                {bill.autoPayBill && (
+                  <Badge variant="default" className="gap-1">
+                    <Zap className="w-3 h-3" />
+                    Auto-pay
+                  </Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Budget Categories */}
       <div className="space-y-3 animate-fade-up stagger-4">
         <h3 className="font-semibold">Budget Categories</h3>
-        <div className="space-y-3">
-          {budgets.map((category) => (
-            <BudgetProgress 
-              key={category.id} 
-              category={category}
-              onClick={() => navigate(`/budget/${category.id}`)}
-            />
-          ))}
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading budgets...</div>
+        ) : budgets.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground mb-4">No budget categories yet</p>
+            <Button onClick={() => navigate('/budget/add')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Budget
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {budgets.filter(b => !b.isBill).map((category) => (
+              <div key={category.id} className="relative">
+                {category.priority === 'high' && (
+                  <Badge className="absolute -top-2 -right-2 z-10" variant="destructive">High Priority</Badge>
+                )}
+                <BudgetProgress 
+                  category={category}
+                  onClick={() => navigate(`/budget/${category.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* AI Budget Advice */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 animate-fade-up stagger-5">
+        <div className="flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-sm mb-2">AI Budget Advisor</p>
+            {loadingAI ? (
+              <p className="text-sm text-muted-foreground">Analyzing your budget...</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">{aiAdvice}</p>
+            )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="mt-2 h-8 text-xs"
+              onClick={fetchAIAdvice}
+              disabled={loadingAI}
+            >
+              Refresh Advice
+            </Button>
+          </div>
         </div>
       </div>
     </div>

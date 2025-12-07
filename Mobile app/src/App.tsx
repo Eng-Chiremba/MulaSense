@@ -26,6 +26,7 @@ import CreditLine from "./pages/business/CreditLine";
 import AIInsights from "./pages/AIInsights";
 import AIAdvisor from "./pages/AIAdvisor";
 import AddTransaction from "./pages/AddTransaction";
+import AddBudget from "./pages/AddBudget";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <AddTransaction />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/budget/add" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AddBudget />
           </AppLayout>
         </ProtectedRoute>
       } />

@@ -18,7 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
-import { mockUser, mockNotifications } from '@/data/mockData';
+
 import { cn } from '@/lib/utils';
 
 const menuItems = [
@@ -32,9 +32,10 @@ const menuItems = [
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState({ name: 'User', email: 'user@example.com' });
+  const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -125,7 +126,9 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-80">
               <div className="p-2">
                 <h4 className="font-semibold text-sm mb-2">Notifications</h4>
-                {mockNotifications.map((notification) => (
+                {notifications.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground py-4">No notifications</p>
+                ) : notifications.map((notification) => (
                   <DropdownMenuItem 
                     key={notification.id}
                     className={cn(
