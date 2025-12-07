@@ -30,26 +30,33 @@ export default function AddTransaction() {
   }, []);
 
   const fetchCategories = async () => {
+    // Set default categories immediately
+    const defaultCategories = [
+      { id: 1, name: 'Salary', category_type: 'income' },
+      { id: 2, name: 'Business Income', category_type: 'income' },
+      { id: 3, name: 'Investment', category_type: 'income' },
+      { id: 4, name: 'Food & Dining', category_type: 'expense' },
+      { id: 5, name: 'Transport', category_type: 'expense' },
+      { id: 6, name: 'Shopping', category_type: 'expense' },
+      { id: 7, name: 'Entertainment', category_type: 'expense' },
+      { id: 8, name: 'Bills & Utilities', category_type: 'expense' },
+      { id: 9, name: 'Healthcare', category_type: 'expense' },
+      { id: 10, name: 'Education', category_type: 'expense' },
+      { id: 11, name: 'Other', category_type: 'expense' },
+    ];
+    
+    setCategories(defaultCategories);
+    console.log('Categories set:', defaultCategories);
+    
     try {
       const response = await axios.get('http://localhost:8000/api/accounting/categories/');
       const data = Array.isArray(response.data) ? response.data : [];
-      setCategories(data);
+      if (data.length > 0) {
+        setCategories(data);
+        console.log('Categories from API:', data);
+      }
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      // Set default categories if API fails
-      setCategories([
-        { id: 1, name: 'Salary', category_type: 'income' },
-        { id: 2, name: 'Business Income', category_type: 'income' },
-        { id: 3, name: 'Investment', category_type: 'income' },
-        { id: 4, name: 'Food & Dining', category_type: 'expense' },
-        { id: 5, name: 'Transport', category_type: 'expense' },
-        { id: 6, name: 'Shopping', category_type: 'expense' },
-        { id: 7, name: 'Entertainment', category_type: 'expense' },
-        { id: 8, name: 'Bills & Utilities', category_type: 'expense' },
-        { id: 9, name: 'Healthcare', category_type: 'expense' },
-        { id: 10, name: 'Education', category_type: 'expense' },
-        { id: 11, name: 'Other', category_type: 'expense' },
-      ]);
+      console.error('Failed to fetch categories from API, using defaults:', error);
     }
   };
 
@@ -68,13 +75,18 @@ export default function AddTransaction() {
     setLoading(true);
     try {
       const transactionData = {
-        ...formData,
+        description: formData.description,
         amount: parseFloat(formData.amount),
-        transaction_date: new Date(formData.transaction_date).toISOString(),
+        transaction_type: formData.transaction_type,
+        category: formData.category,
+        transaction_date: formData.transaction_date,
+        notes: formData.notes || '',
         status: 'completed',
       };
 
-      await transactionAPI.create(transactionData);
+      console.log('Submitting transaction:', transactionData);
+      const response = await transactionAPI.create(transactionData);
+      console.log('Transaction created:', response.data);
       
       toast({
         title: 'Success',
@@ -83,9 +95,17 @@ export default function AddTransaction() {
       
       navigate('/transactions');
     } catch (error: any) {
+      console.error('Transaction creation error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          JSON.stringify(error.response?.data) || 
+                          'Failed to add transaction';
+      
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to add transaction',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -96,6 +116,10 @@ export default function AddTransaction() {
   const filteredCategories = Array.isArray(categories) 
     ? categories.filter(cat => cat.category_type === formData.transaction_type)
     : [];
+  
+  console.log('Transaction type:', formData.transaction_type);
+  console.log('All categories:', categories);
+  console.log('Filtered categories:', filteredCategories);
 
 
 
@@ -158,11 +182,15 @@ export default function AddTransaction() {
             required
           >
             <option value="">Select category</option>
-            {filteredCategories.map((cat) => (
-              <option key={cat.id} value={cat.id.toString()}>
-                {cat.name}
-              </option>
-            ))}
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))
+            ) : (
+              <option disabled>No categories available</option>
+            )}
           </select>
         </div>
 

@@ -4,6 +4,9 @@ import {
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { toast } from '@/hooks/use-toast';
 
 const settingsSections = [
   {
@@ -81,6 +84,20 @@ const settingsSections = [
 ];
 
 export default function Settings() {
+  const navigate = useNavigate();
+  const { setIsAuthenticated } = useUser();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    toast({
+      title: 'Logged out',
+      description: 'You have been successfully logged out',
+    });
+    navigate('/login');
+  };
+
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
@@ -125,7 +142,10 @@ export default function Settings() {
 
       {/* Logout */}
       <div className="animate-fade-up stagger-4">
-        <button className="w-full flex items-center gap-4 p-4 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+        >
           <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center">
             <LogOut className="w-5 h-5" />
           </div>

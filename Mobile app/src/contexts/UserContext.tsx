@@ -13,9 +13,16 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [userType, setUserType] = useState<UserType>(() => {
     const stored = localStorage.getItem('accountType');
+    console.log('UserContext init: accountType =', stored);
     return (stored as UserType) || 'individual';
   });
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem('token');
+    console.log('UserContext init: token =', token ? 'exists' : 'missing');
+    return !!token;
+  });
+
+  console.log('UserProvider rendering:', { userType, isAuthenticated });
 
   useEffect(() => {
     localStorage.setItem('accountType', userType);

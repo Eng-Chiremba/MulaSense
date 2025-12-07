@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
 import { 
   User, Mail, Phone, Calendar, Building2, MapPin, 
-  Wallet, Camera, ChevronRight, Shield
+  Wallet, Camera, ChevronRight, Shield, LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { mockUser } from '@/data/mockData';
 import { Separator } from '@/components/ui/separator';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { toast } from '@/hooks/use-toast';
 
 export default function Profile() {
   const [user, setUser] = useState(mockUser);
+  const navigate = useNavigate();
+  const { setIsAuthenticated } = useUser();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -17,6 +22,17 @@ export default function Profile() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    toast({
+      title: 'Logged out',
+      description: 'You have been successfully logged out',
+    });
+    navigate('/login');
+  };
 
   const profileSections = [
     {
@@ -102,6 +118,14 @@ export default function Profile() {
         <Button variant="outline" className="w-full justify-start h-12">
           <Shield className="w-5 h-5 mr-3" />
           Change Password
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full justify-start h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          Log Out
         </Button>
         <Button variant="destructive" className="w-full justify-start h-12">
           Delete Account

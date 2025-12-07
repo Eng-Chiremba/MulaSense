@@ -27,6 +27,16 @@ interface TransactionItemProps {
 export function TransactionItem({ transaction, onClick }: TransactionItemProps) {
   const Icon = iconMap[transaction.category.icon] || Wallet;
   const isIncome = transaction.type === 'income';
+  
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return format(date, 'MMM d');
+    } catch {
+      return 'Invalid date';
+    }
+  };
 
   return (
     <button
@@ -46,7 +56,7 @@ export function TransactionItem({ transaction, onClick }: TransactionItemProps) 
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{transaction.description}</p>
         <p className="text-xs text-muted-foreground">
-          {transaction.category.name} • {format(new Date(transaction.date), 'MMM d')}
+          {transaction.category.name} • {formatDate(transaction.date)}
         </p>
       </div>
       

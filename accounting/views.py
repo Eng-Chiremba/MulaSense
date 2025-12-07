@@ -26,7 +26,9 @@ class TransactionListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Only return transactions for the authenticated user
-        return Transaction.objects.filter(user=self.request.user).select_related('category').order_by('-transaction_date')
+        queryset = Transaction.objects.filter(user=self.request.user).select_related('category').order_by('-transaction_date')
+        print(f"[DEBUG] User: {self.request.user}, Transaction count: {queryset.count()}")
+        return queryset
 
     def perform_create(self, serializer):
         # Save transaction under the authenticated user

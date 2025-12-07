@@ -7,14 +7,22 @@ import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/features/MetricCard';
 import { HealthScoreRing } from '@/components/features/HealthScoreRing';
 import { TransactionItem } from '@/components/features/TransactionItem';
-import { mockDashboardMetrics, mockTransactions, mockUser } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
-import { reportAPI, transactionAPI } from '@/services/api';
+import { transactionAPI, budgetAPI } from '@/services/api';
+import axios from 'axios';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState(mockDashboardMetrics);
-  const [transactions, setTransactions] = useState(mockTransactions.slice(0, 4));
+  const [metrics, setMetrics] = useState({
+    monthlyIncome: 0,
+    totalExpenses: 0,
+    netSavings: 0,
+    budgetHealthScore: 0,
+    incomeChange: 0,
+    expenseChange: 0,
+    savingsChange: 0,
+  });
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [userName, setUserName] = useState('User');
   const [greeting, setGreeting] = useState('Good morning');
   const [loading, setLoading] = useState(true);
@@ -22,39 +30,123 @@ export default function Dashboard() {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserName(user.name || 'User');
+      try {
+        setUserName(JSON.parse(storedUser).name || 'User');
+      } catch (e) {}
     }
 
     const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting('Good morning');
-    } else if (hour < 18) {
-      setGreeting('Good afternoon');
-    } else {
-      setGreeting('Good evening');
-    }
+    setGreeting(hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
 
     const fetchData = async () => {
       try {
-        const dashboardRes = await reportAPI.getDashboard();
-        const summary = dashboardRes.data.financial_summary;
+        const token = localStorage.getItem('token');
+        console.log('=== DASHBOARD FETCH START ===');
+        console.log('Token:', token ? 'exists' : 'missing');
         
-        setMetrics({
-          netSavings: summary.net_savings,
-          savingsChange: summary.savings_change,
-          budgetHealthScore: 650,
-          monthlyIncome: summary.monthly_income,
-          incomeChange: summary.income_change,
-          totalExpenses: summary.monthly_expenses,
-          expenseChange: summary.expense_change,
+        const txnRes = await axios.get('http://localhost:8000/api/accounting/transactions/', {
+          headers: token ? { Authorization: `Token ${token}` } : {}
         });
         
-        setTransactions(dashboardRes.data.recent_transactions.slice(0, 4));
+        const allTxns = Array.isArray(txnRes.data) ? txnRes.data : (txnRes.data?.results || []);
+        console.log('Transaction count:', allTxns.length);
+        
+        const budgets: any[] = [];
+
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        
+        const currentMonthTxns = allTxns.filter((t: any) => 
+          new Date(t.transaction_date) >= monthStart && t.status === 'completed'
+        );
+        const lastMonthTxns = allTxns.filter((t: any) => {
+          const d = new Date(t.transaction_date);
+          return d >= lastMonthStart && d <= lastMonthEnd && t.status === 'completed';
+        });
+        const last3MonthsTxns = allTxns.filter((t: any) => 
+          new Date(t.transaction_date) >= threeMonthsAgo && t.status === 'completed'
+        );
+        
+        const income = currentMonthTxns.filter((t: any) => t.transaction_type === 'income')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        const expenses = currentMonthTxns.filter((t: any) => t.transaction_type === 'expense')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        const lastIncome = lastMonthTxns.filter((t: any) => t.transaction_type === 'income')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        const lastExpenses = lastMonthTxns.filter((t: any) => t.transaction_type === 'expense')
+          .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        
+        const netSavings = income - expenses;
+        const lastNetSavings = lastIncome - lastExpenses;
+        
+        // Income Stability (20 points)
+        const incomeMonths = last3MonthsTxns.filter((t: any) => t.transaction_type === 'income')
+          .reduce((acc: any, t: any) => {
+            const month = new Date(t.transaction_date).getMonth();
+            acc[month] = (acc[month] || 0) + parseFloat(t.amount);
+            return acc;
+          }, {});
+        const incomeValues = Object.values(incomeMonths) as number[];
+        const avgIncome = incomeValues.length > 0 ? incomeValues.reduce((a, b) => a + b, 0) / incomeValues.length : 0;
+        const incomeVariance = incomeValues.length > 1 ? 
+          incomeValues.reduce((sum, val) => sum + Math.pow(val - avgIncome, 2), 0) / incomeValues.length : 0;
+        const incomeStability = avgIncome > 0 ? Math.max(0, 20 - (Math.sqrt(incomeVariance) / avgIncome) * 20) : 0;
+        
+        // Expense Ratio (25 points)
+        const expenseRatio = income > 0 ? (expenses / income) : 1;
+        const expenseScore = Math.max(0, 25 * (1 - Math.min(expenseRatio, 1)));
+        
+        // Savings Rate (25 points)
+        const savingsRate = income > 0 ? (netSavings / income) : 0;
+        const savingsScore = Math.max(0, Math.min(25, savingsRate * 25));
+        
+        // Budget Adherence (20 points)
+        let budgetScore = 0;
+        if (budgets.length > 0) {
+          const adherenceScores = budgets.map((b: any) => {
+            const spent = currentMonthTxns
+              .filter((t: any) => t.category === b.category && t.transaction_type === 'expense')
+              .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+            const budgeted = parseFloat(b.amount || 0);
+            return budgeted > 0 ? Math.max(0, 1 - Math.abs(spent - budgeted) / budgeted) : 0;
+          });
+          budgetScore = (adherenceScores.reduce((a, b) => a + b, 0) / budgets.length) * 20;
+        }
+        
+        // Debt Ratio (10 points) - assuming no debt tracking for now
+        const debtScore = 10;
+        
+        const healthScore = Math.round(incomeStability + expenseScore + savingsScore + budgetScore + debtScore);
+        
+        setMetrics({
+          monthlyIncome: income,
+          totalExpenses: expenses,
+          netSavings,
+          budgetHealthScore: healthScore,
+          incomeChange: lastIncome > 0 ? Math.round(((income - lastIncome) / lastIncome) * 100) : (income > 0 ? 100 : 0),
+          expenseChange: lastExpenses > 0 ? Math.round(((expenses - lastExpenses) / lastExpenses) * 100) : (expenses > 0 ? 100 : 0),
+          savingsChange: lastNetSavings !== 0 ? Math.round(((netSavings - lastNetSavings) / Math.abs(lastNetSavings)) * 100) : (netSavings !== 0 ? 100 : 0),
+        });
+        
+        const recentTxns = allTxns
+          .sort((a: any, b: any) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+          .slice(0, 4)
+          .map((t: any) => ({
+            id: t.id,
+            amount: parseFloat(t.amount),
+            type: t.transaction_type,
+            category: { name: t.category_name || 'Other', icon: 'Wallet', color: '#2D358B' },
+            description: t.description,
+            date: t.transaction_date,
+            status: t.status
+          }));
+        
+        setTransactions(recentTxns);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
-        setMetrics(mockDashboardMetrics);
-        setTransactions(mockTransactions.slice(0, 4));
       } finally {
         setLoading(false);
       }
@@ -63,7 +155,9 @@ export default function Dashboard() {
     fetchData();
   }, []);
   
-  const recentTransactions = transactions;
+  if (loading) {
+    return <div className="p-4 text-center">Loading...</div>;
+  }
 
   return (
     <div className="p-4 space-y-6">
@@ -88,7 +182,7 @@ export default function Dashboard() {
                 <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                   <TrendingUp className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-medium">+{metrics.savingsChange}%</span>
+                <span className="font-medium">{metrics.savingsChange > 0 ? '+' : ''}{metrics.savingsChange.toFixed(1)}%</span>
               </div>
               <span className="text-primary-foreground/60 text-xs">vs last month</span>
             </div>
@@ -158,13 +252,19 @@ export default function Dashboard() {
         </div>
         
         <div className="bg-card rounded-2xl shadow-card border border-border/50 divide-y divide-border">
-          {recentTransactions.map((transaction) => (
-            <TransactionItem 
-              key={transaction.id} 
-              transaction={transaction}
-              onClick={() => navigate(`/transactions/${transaction.id}`)}
-            />
-          ))}
+          {transactions.length > 0 ? (
+            transactions.map((transaction) => (
+              <TransactionItem 
+                key={transaction.id} 
+                transaction={transaction}
+                onClick={() => navigate(`/transactions/${transaction.id}`)}
+              />
+            ))
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              <p>No transactions yet</p>
+            </div>
+          )}
         </div>
       </div>
 
