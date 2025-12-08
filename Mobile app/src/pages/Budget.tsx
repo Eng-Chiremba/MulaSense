@@ -13,6 +13,7 @@ export default function Budget() {
   const [loading, setLoading] = useState(true);
   const [aiAdvice, setAiAdvice] = useState<string>('');
   const [loadingAI, setLoadingAI] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState<any>(null);
 
   useEffect(() => {
     const savedBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
@@ -189,7 +190,7 @@ export default function Budget() {
                 )}
                 <BudgetProgress 
                   category={category}
-                  onClick={() => navigate(`/budget/${category.id}`)}
+                  onClick={() => setSelectedBudget(category)}
                 />
               </div>
             ))}
@@ -220,6 +221,70 @@ export default function Budget() {
           </div>
         </div>
       </div>
+
+      {selectedBudget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedBudget(null)}>
+          <div className="bg-background rounded-2xl shadow-xl max-w-md w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Budget Details</h2>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedBudget(null)}>
+                <span className="text-2xl">&times;</span>
+              </Button>
+            </div>
+            
+            <div className="p-6 rounded-xl mb-4 bg-primary/10 border border-primary/20">
+              <p className="text-sm text-muted-foreground mb-1">Budget Amount</p>
+              <h3 className="text-3xl font-bold text-primary">
+                ${selectedBudget.budgetedAmount.toLocaleString()}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Spent: ${selectedBudget.spentAmount.toLocaleString()} ({Math.round((selectedBudget.spentAmount / selectedBudget.budgetedAmount) * 100)}%)
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Category</p>
+                <p className="font-medium">{selectedBudget.name}</p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-muted-foreground">Remaining</p>
+                <p className="font-medium text-success">
+                  ${(selectedBudget.budgetedAmount - selectedBudget.spentAmount).toLocaleString()}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-muted-foreground">Priority</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                  selectedBudget.priority === 'high' ? 'bg-destructive/10 text-destructive' :
+                  selectedBudget.priority === 'medium' ? 'bg-warning/10 text-warning' :
+                  'bg-muted text-muted-foreground'
+                }`}>
+                  {selectedBudget.priority}
+                </span>
+              </div>
+              
+              {selectedBudget.isBill && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Bill Type</p>
+                  <p className="font-medium">
+                    {selectedBudget.autoPayBill ? 'Auto-pay enabled' : 'Manual payment'}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <Button 
+              className="w-full mt-6" 
+              onClick={() => setSelectedBudget(null)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

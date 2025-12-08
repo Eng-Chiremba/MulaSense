@@ -25,7 +25,10 @@ import CreditLine from "./pages/business/CreditLine";
 import AIInsights from "./pages/AIInsights";
 import AIAdvisor from "./pages/AIAdvisor";
 import AddTransaction from "./pages/AddTransaction";
+import EditTransaction from "./pages/EditTransaction";
+import TransactionDetail from "./pages/TransactionDetail";
 import AddBudget from "./pages/AddBudget";
+import BudgetDetail from "./pages/BudgetDetail";
 import Kashagi from "./pages/Kashagi";
 
 const queryClient = new QueryClient();
@@ -67,6 +70,22 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
+      <Route path="/transactions/edit/:id" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <EditTransaction />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/transactions/:id" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <TransactionDetail />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
       <Route path="/budget" element={
         <ProtectedRoute>
           <AppLayout>
@@ -78,6 +97,14 @@ function AppRoutes() {
       <Route path="/budget/add" element={
         <ProtectedRoute>
           <AddBudget />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/budget/:id" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <BudgetDetail />
+          </AppLayout>
         </ProtectedRoute>
       } />
       

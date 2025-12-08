@@ -16,6 +16,7 @@ export default function Transactions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   useEffect(() => {
     fetchTransactions();
@@ -124,7 +125,12 @@ export default function Transactions() {
                   ...transaction,
                   type: transaction.transaction_type,
                 }}
-                onClick={() => navigate(`/transactions/${transaction.id}`)}
+                onClick={() => setSelectedTransaction({
+                  ...transaction,
+                  type: transaction.transaction_type,
+                  category: { name: transaction.category_name || 'Other' },
+                  date: transaction.transaction_date
+                })}
               />
             ))}
           </div>
@@ -142,6 +148,76 @@ export default function Transactions() {
           </div>
         )}
       </div>
+
+      {selectedTransaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedTransaction(null)}>
+          <div className="bg-background rounded-2xl shadow-xl max-w-md w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Transaction Details</h2>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedTransaction(null)}>
+                <span className="text-2xl">&times;</span>
+              </Button>
+            </div>
+            
+            <div className={`p-6 rounded-xl mb-4 ${
+              selectedTransaction.type === 'income' 
+                ? 'bg-success/10 border border-success/20' 
+                : 'bg-destructive/10 border border-destructive/20'
+            }`}>
+              <p className="text-sm text-muted-foreground mb-1">Amount</p>
+              <h3 className={`text-3xl font-bold ${
+                selectedTransaction.type === 'income' ? 'text-success' : 'text-destructive'
+              }`}>
+                {selectedTransaction.type === 'income' ? '+' : '-'}${parseFloat(selectedTransaction.amount).toLocaleString()}
+              </h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Description</p>
+                <p className="font-medium">{selectedTransaction.description}</p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-muted-foreground">Category</p>
+                <p className="font-medium">{selectedTransaction.category?.name || 'Other'}</p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-muted-foreground">Date</p>
+                <p className="font-medium">
+                  {new Date(selectedTransaction.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-muted-foreground">Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                  selectedTransaction.status === 'completed' 
+                    ? 'bg-success/10 text-success' 
+                    : 'bg-warning/10 text-warning'
+                }`}>
+                  {selectedTransaction.status}
+                </span>
+              </div>
+            </div>
+            
+            <Button 
+              className="w-full mt-6" 
+              onClick={() => {
+                setSelectedTransaction(null);
+                navigate(`/transactions/${selectedTransaction.id}`);
+              }}
+            >
+              View Full Details
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
