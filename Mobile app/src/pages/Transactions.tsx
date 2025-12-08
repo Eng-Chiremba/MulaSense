@@ -124,6 +124,8 @@ export default function Transactions() {
                 transaction={{
                   ...transaction,
                   type: transaction.transaction_type,
+                  date: transaction.transaction_date,
+                  category: { name: transaction.category_name || 'Other', color: '#2D358B', icon: 'Wallet' }
                 }}
                 onClick={() => setSelectedTransaction({
                   ...transaction,

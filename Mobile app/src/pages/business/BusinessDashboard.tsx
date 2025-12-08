@@ -1,12 +1,13 @@
-import { TrendingUp, DollarSign, TrendingDown, Activity, Plus, FileText, Calculator, RefreshCw } from 'lucide-react';
+import { TrendingUp, DollarSign, TrendingDown, Activity, Plus, FileText, Calculator, RefreshCw, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/features/MetricCard';
 import { useNavigate } from 'react-router-dom';
-import { calculateTaxBreakdown } from '@/lib/taxCalculator';
+import { getEstimatedTaxBill } from '@/lib/zimbabweTaxCalculator';
 import { businessAPI } from '@/services/api';
 import { useEffect, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Transaction } from '@/types/transaction';
+import { useDateRange } from '@/hooks/useDateRange';
 
 interface DashboardData {
   financial_summary: {
@@ -24,6 +25,7 @@ interface DashboardData {
 export default function BusinessDashboard() {
   const navigate = useNavigate();
   const { user } = useUser();
+  const { startDate, setStartDate, endDate, setEndDate } = useDateRange();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -41,7 +43,7 @@ export default function BusinessDashboard() {
   
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [startDate, endDate]);
   
   if (loading) {
     return <div className="p-4">Loading...</div>;
@@ -49,7 +51,10 @@ export default function BusinessDashboard() {
 
   const summary = data?.financial_summary;
   const transactions = data?.recent_transactions || [];
-  const taxBreakdown = summary ? calculateTaxBreakdown(summary.net_savings ?? 0, summary.monthly_income ?? 0, 0) : null;
+  const taxBill = summary ? getEstimatedTaxBill({
+    netProfit: summary.net_savings ?? 0,
+    annualRevenue: (summary.monthly_income ?? 0) * 12,
+  }) : null;
 
   return (
     <div className="p-4 space-y-6">
@@ -63,6 +68,30 @@ export default function BusinessDashboard() {
         </Button>
       </div>
 
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">From</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">To</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={fetchData}>
+          <Calendar className="w-4 h-4" />
+        </Button>
+      </div>
+
       {summary && (
       <div className="p-5 rounded-2xl gradient-hero text-primary-foreground">
         <div className="flex items-center justify-between">
@@ -71,7 +100,7 @@ export default function BusinessDashboard() {
             <h2 className="text-3xl font-bold mt-1">
               ${(summary.net_savings ?? 0).toLocaleString()}
             </h2>
-            <p className="text-primary-foreground/70 text-sm mt-1">This month</p>
+            <p className="text-primary-foreground/70 text-sm mt-1">{startDate} to {endDate}</p>
             
             <div className="flex items-center gap-4 mt-4">
               <div className="flex items-center gap-1.5 text-sm">
@@ -153,7 +182,7 @@ export default function BusinessDashboard() {
                     </div>
                     <div>
                       <p className="font-medium text-sm">{transaction.description}</p>
-                      <p className="text-xs text-muted-foreground">{transaction.category?.name || 'Uncategorized'}</p>
+                      <p className="text-xs text-muted-foreground">{(transaction as any).category_name || 'Uncategorized'}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -198,19 +227,22 @@ export default function BusinessDashboard() {
         </div>
         )}
         
-        {taxBreakdown && (
-        <div className="p-4 rounded-2xl bg-[#2D358B]/5 border border-[#2D358B]/20">
+        {taxBill && (
+        <button 
+          onClick={() => navigate('/business/tax')}
+          className="p-4 rounded-2xl bg-[#2D358B]/5 border border-[#2D358B]/20 hover:bg-[#2D358B]/10 transition-colors text-left"
+        >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#2D358B]/10 flex items-center justify-center flex-shrink-0">
               <Calculator className="w-5 h-5 text-[#2D358B]" />
             </div>
             <div>
               <h4 className="font-semibold text-sm">Tax Liability</h4>
-              <p className="text-xl font-bold text-[#2D358B] mt-1">${(taxBreakdown.totalTax ?? 0).toLocaleString()}</p>
+              <p className="text-xl font-bold text-[#2D358B] mt-1">${(taxBill.totalTax ?? 0).toLocaleString()}</p>
               <p className="text-xs text-muted-foreground mt-1">Estimated annual</p>
             </div>
           </div>
-        </div>
+        </button>
         )}
       </div>
     </div>

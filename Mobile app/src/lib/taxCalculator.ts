@@ -1,4 +1,4 @@
-// Zimbabwe 2025 Tax Calculator
+import { calculatePAYE } from './payeCalculator';
 
 export function calculateCorporateTax(netProfit: number): number {
   const corporateRate = 0.25;
@@ -9,13 +9,6 @@ export function calculateCorporateTax(netProfit: number): number {
 
 export function checkVatStatus(annualTurnover: number): boolean {
   return annualTurnover > 25000;
-}
-
-export function calculatePAYE(salary: number): number {
-  if (salary <= 100) return 0;
-  if (salary <= 300) return (salary - 100) * 0.20;
-  if (salary <= 1000) return 40 + (salary - 300) * 0.25;
-  return 40 + 175 + (salary - 1000) * 0.25;
 }
 
 export interface TaxBreakdown {
@@ -40,7 +33,8 @@ export function calculateTaxBreakdown(
   const vatRegistered = checkVatStatus(annualTurnover);
   const vat = vatRegistered ? annualTurnover * 0.15 : 0;
   
-  const paye = calculatePAYE(totalSalaries);
+  const payeResult = calculatePAYE(totalSalaries);
+  const paye = payeResult.paye + payeResult.aidsLevy;
   
   return {
     corporateTax,

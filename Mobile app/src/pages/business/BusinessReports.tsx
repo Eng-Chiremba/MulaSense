@@ -1,8 +1,11 @@
-import { FileText, Calculator, TrendingUp, CreditCard } from 'lucide-react';
+import { FileText, Calculator, TrendingUp, CreditCard, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useDateRange } from '@/hooks/useDateRange';
 
 export default function BusinessReports() {
   const navigate = useNavigate();
+  const { startDate, setStartDate, endDate, setEndDate } = useDateRange();
 
   const reports = [
     {
@@ -54,6 +57,30 @@ export default function BusinessReports() {
       <div>
         <h1 className="text-2xl font-bold">Business Reports</h1>
         <p className="text-muted-foreground text-sm">Financial statements and tools</p>
+      </div>
+
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">From</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">To</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <Button variant="outline" size="sm">
+          <Calendar className="w-4 h-4" />
+        </Button>
       </div>
 
       <div className="space-y-3">

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .debtor_views import DebtorListCreateView, DebtorDetailView, total_debt_owed, settle_debt
 
 urlpatterns = [
     # Categories
@@ -26,4 +27,10 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard_data, name='dashboard-data'),
     path('reports/monthly-excel/', views.generate_monthly_report, name='monthly-excel-report'),
+    
+    # Debtors
+    path('debtors/', DebtorListCreateView.as_view(), name='debtor-list-create'),
+    path('debtors/<int:pk>/', DebtorDetailView.as_view(), name='debtor-detail'),
+    path('debtors/total/', total_debt_owed, name='total-debt-owed'),
+    path('debtors/<int:debtor_id>/settle/', settle_debt, name='settle-debt'),
 ]
