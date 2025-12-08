@@ -21,6 +21,7 @@ const individualNavItems = [
 
 const businessNavItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/transactions', icon: ArrowLeftRight, label: 'Transactions' },
   { path: '/business/reports', icon: FileBarChart, label: 'Reports' },
   { path: '/business/tax', icon: Calculator, label: 'Tax' },
   { path: '/business/credit', icon: CreditCard, label: 'Credit' },

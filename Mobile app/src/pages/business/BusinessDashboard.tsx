@@ -45,10 +45,10 @@ export default function BusinessDashboard() {
         <Button 
           variant="gradient" 
           className="flex-1 h-12"
-          onClick={() => navigate('/business/transactions/add')}
+          onClick={() => navigate('/transactions/add')}
         >
           <Plus className="w-4 h-4" />
-          Record Sale
+          Add Transaction
         </Button>
         <Button 
           variant="outline" 
@@ -84,7 +84,7 @@ export default function BusinessDashboard() {
             variant="ghost" 
             size="sm" 
             className="text-primary"
-            onClick={() => navigate('/business/transactions')}
+            onClick={() => navigate('/transactions')}
           >
             See all
           </Button>
