@@ -6,6 +6,7 @@ urlpatterns = [
     # Categories
     path('categories/', views.CategoryListCreateView.as_view(), name='category-list-create'),
     path('categories/<int:pk>/', views.CategoryDetailView.as_view(), name='category-detail'),
+    path('categories/setup/', views.setup_categories, name='setup-categories'),
     
     # Transactions
     path('transactions/', views.TransactionListCreateView.as_view(), name='transaction-list-create'),

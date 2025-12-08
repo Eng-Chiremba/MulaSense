@@ -11,8 +11,11 @@ from .serializers import TransactionSerializer, CategorySerializer
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
-    # categories can be browsable publicly for now; keep open or change to IsAuthenticated
     permission_classes = []
+    
+    def get_queryset(self):
+        # Return all active categories
+        return Category.objects.filter(is_active=True).order_by('name')
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
@@ -330,3 +333,41 @@ def dashboard_data(request):
 def generate_monthly_report(request):
     from django.http import HttpResponse
     return HttpResponse('Monthly Excel report generation not implemented yet', content_type='text/plain')
+
+@api_view(['POST'])
+def setup_categories(request):
+    """Manually create default categories"""
+    categories_data = [
+        {'name': 'Salary', 'category_type': 'income', 'color': '#4CAF50'},
+        {'name': 'Freelance', 'category_type': 'income', 'color': '#8BC34A'},
+        {'name': 'Investments', 'category_type': 'income', 'color': '#009688'},
+        {'name': 'Food & Dining', 'category_type': 'expense', 'color': '#F44336'},
+        {'name': 'Transportation', 'category_type': 'expense', 'color': '#FF9800'},
+        {'name': 'Housing', 'category_type': 'expense', 'color': '#795548'},
+        {'name': 'Entertainment', 'category_type': 'expense', 'color': '#9C27B0'},
+        {'name': 'Shopping', 'category_type': 'expense', 'color': '#E91E63'},
+        {'name': 'Healthcare', 'category_type': 'expense', 'color': '#00BCD4'},
+        {'name': 'Other', 'category_type': 'expense', 'color': '#9E9E9E'},
+        {'name': 'Send to Registered User', 'category_type': 'transfer', 'color': '#3B82F6'},
+        {'name': 'Send to Unregistered User', 'category_type': 'transfer', 'color': '#8B5CF6'},
+        {'name': 'Send to Account', 'category_type': 'transfer', 'color': '#10B981'},
+        {'name': 'USD to Zig', 'category_type': 'transfer', 'color': '#F59E0B'},
+    ]
+    
+    created = []
+    for cat_data in categories_data:
+        category, was_created = Category.objects.get_or_create(
+            name=cat_data['name'],
+            defaults={
+                'category_type': cat_data['category_type'],
+                'color': cat_data['color']
+            }
+        )
+        if was_created:
+            created.append(category.name)
+    
+    return Response({
+        'message': 'Categories setup complete',
+        'created': created,
+        'total_categories': Category.objects.count()
+    })
