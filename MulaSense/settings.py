@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'accounting',
     'ai',
     'reports',
+    'ecocash',
 ]
 
 MIDDLEWARE = [
@@ -168,6 +169,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', 'your-api-key-here')
+
+# EcoCash Configuration
+ECOCASH_API_KEY = os.getenv('ECOCASH_API_KEY', '')
+ECOCASH_SANDBOX = os.getenv('ECOCASH_SANDBOX', 'True')
 
 # REST Framework settings
 REST_FRAMEWORK = {
