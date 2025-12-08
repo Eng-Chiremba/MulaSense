@@ -335,6 +335,7 @@ def generate_monthly_report(request):
     return HttpResponse('Monthly Excel report generation not implemented yet', content_type='text/plain')
 
 @api_view(['POST'])
+@permission_classes([])
 def setup_categories(request):
     """Manually create default categories"""
     categories_data = [
