@@ -62,3 +62,10 @@ api_overview.py
 checklist.md
 setup_test_data.py
 start_dev.bat
+.env.example
+DEPLOYMENT.md
+Mobile app/.env.production
+TRANSFER_IMPLEMENTATION_SUMMARY.md
+TRANSFER_QUICK_START.md
+test_transfers.py
+transfers/API_DOCUMENTATION.md
