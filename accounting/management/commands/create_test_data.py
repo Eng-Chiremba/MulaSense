@@ -31,6 +31,10 @@ class Command(BaseCommand):
             {'name': 'Shopping', 'category_type': 'expense', 'color': '#E91E63'},
             {'name': 'Healthcare', 'category_type': 'expense', 'color': '#00BCD4'},
             {'name': 'Other', 'category_type': 'expense', 'color': '#9E9E9E'},
+            {'name': 'Send to Registered User', 'category_type': 'transfer', 'color': '#3B82F6'},
+            {'name': 'Send to Unregistered User', 'category_type': 'transfer', 'color': '#8B5CF6'},
+            {'name': 'Send to Account', 'category_type': 'transfer', 'color': '#10B981'},
+            {'name': 'USD to Zig', 'category_type': 'transfer', 'color': '#F59E0B'},
         ]
 
         for cat_data in categories_data:

@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'accounting',
     'ai',
     'reports',
+    'ecocash',
+    'transfers',
 ]
 
 MIDDLEWARE = [

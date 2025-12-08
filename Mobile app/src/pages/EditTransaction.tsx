@@ -45,28 +45,10 @@ export default function EditTransaction() {
   };
 
   const fetchCategories = async () => {
-    const defaultCategories = [
-      { id: 1, name: 'Salary', category_type: 'income' },
-      { id: 2, name: 'Business Income', category_type: 'income' },
-      { id: 3, name: 'Investment', category_type: 'income' },
-      { id: 4, name: 'Food & Dining', category_type: 'expense' },
-      { id: 5, name: 'Transport', category_type: 'expense' },
-      { id: 6, name: 'Shopping', category_type: 'expense' },
-      { id: 7, name: 'Entertainment', category_type: 'expense' },
-      { id: 8, name: 'Bills & Utilities', category_type: 'expense' },
-      { id: 9, name: 'Healthcare', category_type: 'expense' },
-      { id: 10, name: 'Education', category_type: 'expense' },
-      { id: 11, name: 'Other', category_type: 'expense' },
-    ];
-    
-    setCategories(defaultCategories);
-    
     try {
       const response = await axios.get('http://localhost:8000/api/accounting/categories/');
-      const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length > 0) {
-        setCategories(data);
-      }
+      const data = response.data.results || response.data || [];
+      setCategories(data);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -139,10 +121,7 @@ export default function EditTransaction() {
                 key={type}
                 type="button"
                 variant={formData.transaction_type === type ? 'default' : 'outline'}
-                onClick={() => {
-                  setFormData({ ...formData, transaction_type: type, category: '' });
-                  setCategoryInput('');
-                }}
+                onClick={() => setFormData({ ...formData, transaction_type: type, category: '' })}
                 className="capitalize"
               >
                 {type}
