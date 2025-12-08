@@ -133,6 +133,9 @@ export const aiAPI = {
 };
 
 export const businessAPI = {
+  getMetrics: () =>
+    api.get('/accounting/dashboard/'),
+  
   getCreditLimit: () =>
     api.get('/accounting/credit-limit/'),
   
