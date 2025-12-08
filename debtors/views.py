@@ -123,13 +123,13 @@ def record_payment(request, pk):
 @permission_classes([IsAuthenticated])
 def debtor_summary(request):
     debts = CustomerDebt.objects.filter(user=request.user)
-    total_owed = debts.aggregate(Sum('amount_remaining'))['amount_remaining__sum'] or 0
+    total_amount = debts.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_paid = debts.aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+    total_owed = total_amount - total_paid
     active_debts = debts.filter(status='active').count()
-    paid_debts = debts.filter(status='paid').count()
     
     return Response({
         'total_debtors': debts.count(),
         'active_debtors': active_debts,
-        'paid_debtors': paid_debts,
-        'total_owed': total_owed
+        'total_owed': float(total_owed)
     })

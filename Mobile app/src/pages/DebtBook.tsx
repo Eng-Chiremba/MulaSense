@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, Loader2, Trash2, Pencil } from 'lucide-react';
+import { Plus, TrendingUp, Loader2, Trash2, Pencil, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { generateWhatsAppLink } from '@/lib/whatsappHelper';
 
 interface CustomerDebt {
   id: number;
@@ -29,7 +30,6 @@ const formatPhone = (phone: string | undefined) => {
 export default function DebtBook() {
   const navigate = useNavigate();
   const [debts, setDebts] = useState<CustomerDebt[]>([]);
-  const [summary, setSummary] = useState({ total_debtors: 0, active_debtors: 0, total_owed: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedDebt, setSelectedDebt] = useState<CustomerDebt | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -37,7 +37,6 @@ export default function DebtBook() {
 
   useEffect(() => {
     fetchDebts();
-    fetchSummary();
   }, []);
 
   const fetchDebts = async () => {
@@ -51,18 +50,6 @@ export default function DebtBook() {
       console.error('Failed to fetch debts:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSummary = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/debtors/summary/', {
-        headers: { 'Authorization': `Token ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      setSummary(data);
-    } catch (error) {
-      console.error('Failed to fetch summary:', error);
     }
   };
 
@@ -82,7 +69,6 @@ export default function DebtBook() {
         setDeleteConfirm(null);
         setSelectedDebt(null);
         fetchDebts();
-        fetchSummary();
       } else {
         toast({
           title: 'Error',
@@ -109,6 +95,12 @@ export default function DebtBook() {
 
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date();
+  };
+
+  const summary = {
+    total_debtors: debts.length,
+    active_debtors: debts.filter(d => d.status === 'active').length,
+    total_owed: debts.reduce((sum, d) => sum + d.amount_remaining, 0)
   };
 
   return (
@@ -293,6 +285,13 @@ export default function DebtBook() {
             </div>
             
             <div className="space-y-2 mt-6">
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={() => window.open(generateWhatsAppLink({ name: selectedDebt.name, phone_number: selectedDebt.phone, amount_remaining: selectedDebt.amount_remaining, due_date: selectedDebt.due_date }), '_blank')}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Send Reminder via WhatsApp
+              </Button>
               <Button 
                 className="w-full"
                 onClick={() => {
