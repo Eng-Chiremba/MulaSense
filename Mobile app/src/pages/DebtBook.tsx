@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, CheckCircle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { debtorAPI } from '@/services/api';
+import { generateWhatsAppLink } from '@/lib/whatsappHelper';
 
 interface Debtor {
   id: number;
@@ -85,13 +86,22 @@ export default function DebtBook() {
                 <div className="text-right mr-4">
                   <p className="text-lg font-bold text-primary">${debtor.amount_owed.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleSettleDebt(debtor.id)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={() => window.open(generateWhatsAppLink({ name: debtor.name, phone_number: debtor.phone_number, amount_remaining: debtor.amount_owed, due_date: debtor.due_date }), '_blank')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleSettleDebt(debtor.id)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </Card>
           ))
