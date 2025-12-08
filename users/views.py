@@ -47,15 +47,22 @@ def register(request):
     is_business = data.get('is_business', False)
     
     try:
+        # Get phone number based on account type
+        phone = data.get('phone') if not is_business else data.get('business_phone')
+        email = data.get('email', '') if not is_business else data.get('business_email', '')
+        
         # Check if phone number already exists
-        if UserProfile.objects.filter(phone_number=data.get('phone')).exists():
+        if UserProfile.objects.filter(phone_number=phone).exists():
+            return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if username (phone) already exists
+        if User.objects.filter(username=phone).exists():
             return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Create user with phone as username
-        phone = data.get('phone') if not is_business else data.get('business_phone')
         user = User.objects.create_user(
             username=phone,
-            email=data.get('email', '') if not is_business else data.get('business_email'),
+            email=email,
             password=data.get('password')
         )
         

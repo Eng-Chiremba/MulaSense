@@ -30,6 +30,10 @@ import TransactionDetail from "./pages/TransactionDetail";
 import AddBudget from "./pages/AddBudget";
 import BudgetDetail from "./pages/BudgetDetail";
 import Kashagi from "./pages/Kashagi";
+import IncomeExpenseReport from "./pages/IncomeExpenseReport";
+import CategoryBreakdown from "./pages/CategoryBreakdown";
+import ProfitLossReport from "./pages/ProfitLossReport";
+import CashFlowReport from "./pages/CashFlowReport";
 
 const queryClient = new QueryClient();
 
@@ -140,6 +144,38 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <Reports />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports/income-expense" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <IncomeExpenseReport />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports/category-breakdown" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <CategoryBreakdown />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports/profit-loss" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <ProfitLossReport />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports/cashflow" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <CashFlowReport />
           </AppLayout>
         </ProtectedRoute>
       } />
