@@ -89,13 +89,30 @@ export const goalAPI = {
 
 export const reportAPI = {
   getDashboard: () =>
-    api.get('/accounting/dashboard/'),
+    api.get('/reports/dashboard/'),
   
-  getMonthly: (month: string, year: string) =>
-    api.get(`/accounting/reports/monthly-summary/?month=${month}&year=${year}`),
+  getMetrics: (period: 'week' | 'month' | 'year' = 'month') =>
+    api.get(`/reports/metrics/?period=${period}`),
   
-  getProfitLoss: (startDate: string, endDate: string) =>
-    api.get(`/accounting/reports/profit-loss/?start_date=${startDate}&end_date=${endDate}`),
+  exportTransactionsCSV: (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    return api.get(`/reports/export/transactions/csv/?${params}`, { responseType: 'blob' });
+  },
+  
+  exportBudgetCSV: () =>
+    api.get('/reports/export/budget/csv/', { responseType: 'blob' }),
+  
+  exportReportPDF: (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    return api.get(`/reports/export/report/pdf/?${params}`, { responseType: 'blob' });
+  },
+  
+  exportBalanceSheetExcel: () =>
+    api.get('/reports/export/balance-sheet/excel/', { responseType: 'blob' }),
 };
 
 export const aiAPI = {

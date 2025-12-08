@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class EcocashConfig(AppConfig):
+class TransfersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'ecocash'
+    name = 'transfers'

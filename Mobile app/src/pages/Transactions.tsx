@@ -124,6 +124,7 @@ export default function Transactions() {
                 transaction={{
                   ...transaction,
                   type: transaction.transaction_type,
+                  date: transaction.transaction_date,
                 }}
                 onClick={() => setSelectedTransaction({
                   ...transaction,

@@ -6,11 +6,32 @@ export default function BusinessReports() {
 
   const reports = [
     {
+      title: 'Income & Expense Summary',
+      description: 'Overview of income and expenses',
+      icon: TrendingUp,
+      color: 'bg-primary/10 text-primary',
+      path: '/reports/income-expense',
+    },
+    {
+      title: 'Category Breakdown',
+      description: 'Spending by category analysis',
+      icon: FileText,
+      color: 'bg-primary/10 text-primary',
+      path: '/reports/category-breakdown',
+    },
+    {
+      title: 'Cash Flow',
+      description: 'Money movement analysis',
+      icon: TrendingUp,
+      color: 'bg-primary/10 text-primary',
+      path: '/reports/cashflow',
+    },
+    {
       title: 'Profit & Loss',
       description: 'Revenue and expense breakdown',
       icon: TrendingUp,
       color: 'bg-primary/10 text-primary',
-      path: '/business/reports/profit-loss',
+      path: '/reports/profit-loss',
     },
     {
       title: 'Tax Calculator',

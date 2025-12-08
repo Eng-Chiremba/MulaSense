@@ -43,54 +43,75 @@ class UserProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
+    from django.db import transaction as db_transaction
+    
     data = request.data
     is_business = data.get('is_business', False)
     
+    # Get phone number based on account type
+    phone = data.get('phone') if not is_business else data.get('business_phone')
+    email = data.get('email', '') if not is_business else data.get('business_email', '')
+    
+    # Validate required fields
+    if not phone:
+        return Response({'error': 'Phone number is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not data.get('password'):
+        return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if phone number already exists
+    if UserProfile.objects.filter(phone_number=phone).exists():
+        return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if username (phone) already exists
+    if User.objects.filter(username=phone).exists():
+        return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+    
     try:
-        # Check if phone number already exists
-        if UserProfile.objects.filter(phone_number=data.get('phone')).exists():
-            return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create user with phone as username
-        phone = data.get('phone') if not is_business else data.get('business_phone')
-        user = User.objects.create_user(
-            username=phone,
-            email=data.get('email', '') if not is_business else data.get('business_email'),
-            password=data.get('password')
-        )
-        
-        # Create profile
-        if is_business:
-            profile = UserProfile.objects.create(
-                user=user,
-                phone_number=data.get('business_phone'),
-                is_business=True,
-                business_name=data.get('business_name'),
-                business_phone=data.get('business_phone'),
-                business_email=data.get('business_email'),
-                business_address=data.get('business_address', '')
+        # Use atomic transaction to ensure all-or-nothing
+        with db_transaction.atomic():
+            # Create user with phone as username
+            user = User.objects.create_user(
+                username=phone,
+                email=email,
+                password=data.get('password')
             )
-        else:
-            profile = UserProfile.objects.create(
-                user=user,
-                phone_number=data.get('phone'),
-                is_business=False,
-                full_name=data.get('name', ''),
-            )
-        
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user': {
-                'id': user.id,
-                'name': profile.business_name if is_business else profile.full_name,
-                'phone': profile.phone_number,
-                'email': user.email,
-                'is_business': profile.is_business
-            }
-        }, status=status.HTTP_201_CREATED)
+            
+            # Create profile
+            if is_business:
+                profile = UserProfile.objects.create(
+                    user=user,
+                    phone_number=phone,
+                    is_business=True,
+                    business_name=data.get('business_name', ''),
+                    business_phone=phone,
+                    business_email=email,
+                    business_address=data.get('business_address', '')
+                )
+            else:
+                profile = UserProfile.objects.create(
+                    user=user,
+                    phone_number=phone,
+                    is_business=False,
+                    full_name=data.get('name', ''),
+                )
+            
+            # Create token
+            token = Token.objects.create(user=user)
+            
+            return Response({
+                'token': token.key,
+                'user': {
+                    'id': user.id,
+                    'name': profile.business_name if is_business else profile.full_name,
+                    'phone': profile.phone_number,
+                    'email': user.email,
+                    'is_business': profile.is_business
+                }
+            }, status=status.HTTP_201_CREATED)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Transaction will automatically rollback on exception
+        return Response({'error': f'Registration failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

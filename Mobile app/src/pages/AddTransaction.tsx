@@ -30,33 +30,13 @@ export default function AddTransaction() {
   }, []);
 
   const fetchCategories = async () => {
-    // Set default categories immediately
-    const defaultCategories = [
-      { id: 1, name: 'Salary', category_type: 'income' },
-      { id: 2, name: 'Business Income', category_type: 'income' },
-      { id: 3, name: 'Investment', category_type: 'income' },
-      { id: 4, name: 'Food & Dining', category_type: 'expense' },
-      { id: 5, name: 'Transport', category_type: 'expense' },
-      { id: 6, name: 'Shopping', category_type: 'expense' },
-      { id: 7, name: 'Entertainment', category_type: 'expense' },
-      { id: 8, name: 'Bills & Utilities', category_type: 'expense' },
-      { id: 9, name: 'Healthcare', category_type: 'expense' },
-      { id: 10, name: 'Education', category_type: 'expense' },
-      { id: 11, name: 'Other', category_type: 'expense' },
-    ];
-    
-    setCategories(defaultCategories);
-    console.log('Categories set:', defaultCategories);
-    
     try {
       const response = await axios.get('http://localhost:8000/api/accounting/categories/');
-      const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length > 0) {
-        setCategories(data);
-        console.log('Categories from API:', data);
-      }
+      const data = response.data.results || response.data || [];
+      setCategories(data);
+      console.log('Categories from API:', data);
     } catch (error) {
-      console.error('Failed to fetch categories from API, using defaults:', error);
+      console.error('Failed to fetch categories from API:', error);
     }
   };
 
