@@ -25,6 +25,7 @@ import CreditLine from "./pages/business/CreditLine";
 import AIInsights from "./pages/AIInsights";
 import AIAdvisor from "./pages/AIAdvisor";
 import AddTransaction from "./pages/AddTransaction";
+import TransactionDetail from "./pages/TransactionDetail";
 import AddBudget from "./pages/AddBudget";
 import Kashagi from "./pages/Kashagi";
 
@@ -63,6 +64,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <AddTransaction />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/transactions/:id" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <TransactionDetail />
           </AppLayout>
         </ProtectedRoute>
       } />

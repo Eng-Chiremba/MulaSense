@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [userName, setUserName] = useState('User');
   const [greeting, setGreeting] = useState('Good morning');
   const [loading, setLoading] = useState(true);
+  const [insight, setInsight] = useState('Track your spending to get personalized insights.');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -142,6 +143,44 @@ export default function Dashboard() {
           }));
         
         setTransactions(recentTxns);
+        
+        // Generate spending insight
+        const currentExpensesByCategory: Record<string, number> = {};
+        const lastExpensesByCategory: Record<string, number> = {};
+        
+        currentMonthTxns.filter((t: any) => t.transaction_type === 'expense').forEach((t: any) => {
+          const cat = t.category_name || 'Other';
+          currentExpensesByCategory[cat] = (currentExpensesByCategory[cat] || 0) + parseFloat(t.amount);
+        });
+        
+        lastMonthTxns.filter((t: any) => t.transaction_type === 'expense').forEach((t: any) => {
+          const cat = t.category_name || 'Other';
+          lastExpensesByCategory[cat] = (lastExpensesByCategory[cat] || 0) + parseFloat(t.amount);
+        });
+        
+        let maxChange = 0;
+        let maxCategory = '';
+        
+        Object.keys(currentExpensesByCategory).forEach(cat => {
+          const current = currentExpensesByCategory[cat];
+          const last = lastExpensesByCategory[cat] || 0;
+          if (last > 0) {
+            const change = ((current - last) / last) * 100;
+            if (Math.abs(change) > Math.abs(maxChange)) {
+              maxChange = change;
+              maxCategory = cat;
+            }
+          }
+        });
+        
+        if (maxCategory) {
+          const absChange = Math.abs(Math.round(maxChange));
+          setInsight(
+            maxChange < 0 
+              ? `Great job! You spent ${absChange}% less on ${maxCategory} this month.`
+              : `You spent ${absChange}% more on ${maxCategory} this month.`
+          );
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -274,7 +313,7 @@ export default function Dashboard() {
           <div>
             <h4 className="font-semibold text-sm">Smart Insight</h4>
             <p className="text-sm text-muted-foreground mt-1">
-              You're spending 12% less on dining this month. Keep it up to reach your savings goal faster!
+              {insight}
             </p>
           </div>
         </div>

@@ -24,6 +24,8 @@ export default function AddTransaction() {
     transaction_date: new Date().toISOString().split('T')[0],
     notes: '',
   });
+  const [categoryInput, setCategoryInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -63,7 +65,7 @@ export default function AddTransaction() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.description || !formData.amount || !formData.category) {
+    if (!formData.description || !formData.amount || !categoryInput) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
@@ -71,14 +73,22 @@ export default function AddTransaction() {
       });
       return;
     }
-
+    
+    let categoryId = formData.category;
+    if (!categoryId) {
+      const matchedCategory = filteredCategories.find(
+        cat => cat.name.toLowerCase() === categoryInput.toLowerCase()
+      );
+      categoryId = matchedCategory?.id || filteredCategories[0]?.id || 11;
+    }
+    
     setLoading(true);
     try {
       const transactionData = {
         description: formData.description,
         amount: parseFloat(formData.amount),
         transaction_type: formData.transaction_type,
-        category: formData.category,
+        category: categoryId,
         transaction_date: formData.transaction_date,
         notes: formData.notes || '',
         status: 'completed',
@@ -144,7 +154,10 @@ export default function AddTransaction() {
                 key={type}
                 type="button"
                 variant={formData.transaction_type === type ? 'default' : 'outline'}
-                onClick={() => setFormData({ ...formData, transaction_type: type, category: '' })}
+                onClick={() => {
+                  setFormData({ ...formData, transaction_type: type, category: '' });
+                  setCategoryInput('');
+                }}
                 className="capitalize"
               >
                 {type}
@@ -172,26 +185,40 @@ export default function AddTransaction() {
         </div>
 
         {/* Category */}
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <Label htmlFor="category">Category *</Label>
-          <select
+          <Input
             id="category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            placeholder="Type or select category"
+            value={categoryInput}
+            onChange={(e) => {
+              setCategoryInput(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
             required
-          >
-            <option value="">Select category</option>
-            {filteredCategories.length > 0 ? (
-              filteredCategories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No categories available</option>
-            )}
-          </select>
+          />
+          {showSuggestions && categoryInput && (
+            <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+              {filteredCategories
+                .filter(cat => cat.name.toLowerCase().includes(categoryInput.toLowerCase()))
+                .map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className="w-full text-left px-3 py-2 hover:bg-accent transition-colors text-sm"
+                    onClick={() => {
+                      setCategoryInput(cat.name);
+                      setFormData({ ...formData, category: cat.id });
+                      setShowSuggestions(false);
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))
+              }
+            </div>
+          )}
         </div>
 
         {/* Description */}
