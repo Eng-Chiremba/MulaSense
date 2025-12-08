@@ -34,6 +34,8 @@ import IncomeExpenseReport from "./pages/IncomeExpenseReport";
 import CategoryBreakdown from "./pages/CategoryBreakdown";
 import ProfitLossReport from "./pages/ProfitLossReport";
 import CashFlowReport from "./pages/CashFlowReport";
+import DebtBook from "./pages/DebtBook";
+import AddDebtor from "./pages/AddDebtor";
 
 const queryClient = new QueryClient();
 
@@ -248,6 +250,22 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <CreditLine />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debt-book" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <DebtBook />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debtors/add" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AddDebtor />
           </AppLayout>
         </ProtectedRoute>
       } />

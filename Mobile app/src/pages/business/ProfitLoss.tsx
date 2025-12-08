@@ -1,4 +1,4 @@
-import { FileText, Download, TrendingUp } from 'lucide-react';
+import { FileText, Download, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockProfitLoss } from '@/data/businessMockData';
 
@@ -35,7 +35,10 @@ export default function ProfitLoss() {
       <div className="space-y-4">
         <div className="bg-card rounded-2xl shadow-card border border-border/50 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-primary">Revenue</h3>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-primary">Revenue</h3>
+            </div>
             <span className="font-bold text-primary">${mockProfitLoss.totalRevenue.toLocaleString()}</span>
           </div>
           <div className="space-y-3">
@@ -50,7 +53,10 @@ export default function ProfitLoss() {
 
         <div className="bg-card rounded-2xl shadow-card border border-border/50 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-destructive">Expenses</h3>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-destructive" />
+              <h3 className="font-semibold text-destructive">Expenses</h3>
+            </div>
             <span className="font-bold text-destructive">${mockProfitLoss.totalExpenses.toLocaleString()}</span>
           </div>
           <div className="space-y-3">

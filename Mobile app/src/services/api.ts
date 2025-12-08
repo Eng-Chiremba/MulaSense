@@ -133,6 +133,9 @@ export const aiAPI = {
 };
 
 export const businessAPI = {
+  getMetrics: () =>
+    api.get('/accounting/dashboard/'),
+  
   getCreditLimit: () =>
     api.get('/accounting/credit-limit/'),
   
@@ -146,6 +149,20 @@ export const businessAPI = {
 export const summaryAPI = {
   getIncome: () =>
     api.get('/accounting/summary/?period=month'),
+};
+
+export const debtorAPI = {
+  getAll: () =>
+    api.get('/accounting/debtors/'),
+  
+  create: (data: any) =>
+    api.post('/accounting/debtors/', data),
+  
+  getTotalOwed: () =>
+    api.get('/accounting/debtors/total/'),
+  
+  settleDebt: (debtorId: number) =>
+    api.post(`/accounting/debtors/${debtorId}/settle/`),
 };
 
 export default api;

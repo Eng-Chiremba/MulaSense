@@ -26,8 +26,11 @@ export default function ProfitLossReport() {
       
       transactions.forEach((txn: any) => {
         if (txn.status !== 'completed') return;
-        const monthKey = format(new Date(txn.transaction_date), 'MMM yyyy');
-        if (!monthly[monthKey]) monthly[monthKey] = { revenue: 0, expenses: 0 };
+        try {
+          const date = new Date(txn.transaction_date);
+          if (isNaN(date.getTime())) return;
+          const monthKey = format(date, 'MMM yyyy');
+          if (!monthly[monthKey]) monthly[monthKey] = { revenue: 0, expenses: 0 };
         
         const amount = parseFloat(txn.amount);
         if (txn.transaction_type === 'income') {
@@ -36,6 +39,9 @@ export default function ProfitLossReport() {
         } else if (txn.transaction_type === 'expense') {
           monthly[monthKey].expenses += amount;
           totalExp += amount;
+        }
+        } catch (e) {
+          console.warn('Invalid date for transaction:', txn.transaction_date);
         }
       });
       
@@ -87,12 +93,12 @@ export default function ProfitLossReport() {
           <>
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white">
+              <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #2D358B 0%, #2D358B 100%)' }}>
                 <TrendingUp className="w-5 h-5 mb-2 opacity-90" />
                 <p className="text-xs opacity-90">Total Revenue</p>
                 <p className="text-2xl font-bold mt-1">${summary.totalRevenue.toLocaleString()}</p>
               </div>
-              <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white">
+              <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #2D358B 0%, #DC2626 100%)' }}>
                 <TrendingDown className="w-5 h-5 mb-2 opacity-90" />
                 <p className="text-xs opacity-90">Total Expenses</p>
                 <p className="text-2xl font-bold mt-1">${summary.totalExpenses.toLocaleString()}</p>
@@ -100,11 +106,7 @@ export default function ProfitLossReport() {
             </div>
 
             {/* Net Profit Card */}
-            <div className={`rounded-2xl p-5 text-white ${
-              summary.netProfit >= 0 
-                ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
-                : 'bg-gradient-to-br from-orange-500 to-orange-600'
-            }`}>
+            <div className="p-5 rounded-2xl text-white" style={{ background: 'linear-gradient(135deg, #2D358B 0%, #1e2460 100%)' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -134,7 +136,7 @@ export default function ProfitLossReport() {
                       <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="Profit" stroke="#3B82F6" strokeWidth={3} />
+                      <Line type="monotone" dataKey="Profit" stroke="#2D358B" strokeWidth={3} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -148,7 +150,7 @@ export default function ProfitLossReport() {
                       <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="Revenue" fill="#10B981" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="Revenue" fill="#2D358B" radius={[8, 8, 0, 0]} />
                       <Bar dataKey="Expenses" fill="#EF4444" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -163,24 +165,25 @@ export default function ProfitLossReport() {
                       <div key={data.month} className="bg-card rounded-xl shadow-card border border-border/50 p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="font-medium">{data.month}</p>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            data.Profit >= 0 ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
-                          }`}>
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: data.Profit >= 0 ? '#2D358B15' : '#EF444415',
+                            color: data.Profit >= 0 ? '#2D358B' : '#EF4444'
+                          }}>
                             {profitMargin}% margin
                           </span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Revenue</span>
-                            <span className="font-semibold text-green-600">${data.Revenue.toLocaleString()}</span>
+                            <span className="font-semibold" style={{ color: '#2D358B' }}>${data.Revenue.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Expenses</span>
-                            <span className="font-semibold text-red-600">${data.Expenses.toLocaleString()}</span>
+                            <span className="font-semibold" style={{ color: '#EF4444' }}>${data.Expenses.toLocaleString()}</span>
                           </div>
                           <div className="pt-2 border-t flex justify-between">
                             <span className="font-medium">Net Profit</span>
-                            <span className={`font-bold ${data.Profit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                            <span className="font-bold" style={{ color: data.Profit >= 0 ? '#2D358B' : '#EF4444' }}>
                               ${Math.abs(data.Profit).toLocaleString()}
                             </span>
                           </div>

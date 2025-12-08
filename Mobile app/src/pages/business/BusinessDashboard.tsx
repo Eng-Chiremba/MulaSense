@@ -1,47 +1,122 @@
-import { TrendingUp, DollarSign, TrendingDown, Activity, Plus, FileText } from 'lucide-react';
+import { TrendingUp, DollarSign, TrendingDown, Activity, Plus, FileText, Calculator, RefreshCw, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/features/MetricCard';
-import { mockBusinessMetrics, mockBusinessTransactions, mockBusinessUser } from '@/data/businessMockData';
 import { useNavigate } from 'react-router-dom';
+import { getEstimatedTaxBill } from '@/lib/zimbabweTaxCalculator';
+import { businessAPI } from '@/services/api';
+import { useEffect, useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { Transaction } from '@/types/transaction';
+import { useDateRange } from '@/hooks/useDateRange';
+
+interface DashboardData {
+  financial_summary: {
+    monthly_income: number;
+    monthly_expenses: number;
+    net_savings: number;
+    savings_rate: number;
+    income_change: number;
+    expense_change: number;
+    savings_change: number;
+  };
+  recent_transactions: Transaction[];
+}
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
-  const recentTransactions = mockBusinessTransactions.slice(0, 4);
+  const { user } = useUser();
+  const { startDate, setStartDate, endDate, setEndDate } = useDateRange();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await businessAPI.getMetrics();
+      setData(res.data);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchData();
+  }, [startDate, endDate]);
+  
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
+
+  const summary = data?.financial_summary;
+  const transactions = data?.recent_transactions || [];
+  const taxBill = summary ? getEstimatedTaxBill({
+    netProfit: summary.net_savings ?? 0,
+    annualRevenue: (summary.monthly_income ?? 0) * 12,
+  }) : null;
 
   return (
     <div className="p-4 space-y-6">
-      <div className="animate-fade-up">
-        <p className="text-muted-foreground text-sm">Business Dashboard</p>
-        <h1 className="text-2xl font-bold">{mockBusinessUser.businessName}</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground text-sm">Business Dashboard</p>
+          <h1 className="text-2xl font-bold">{user?.business_name || 'Business'}</h1>
+        </div>
+        <Button variant="ghost" size="icon" onClick={fetchData} disabled={loading}>
+          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
-      <div className="p-5 rounded-2xl gradient-hero text-primary-foreground animate-fade-up stagger-1">
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">From</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs font-medium text-muted-foreground">To</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={fetchData}>
+          <Calendar className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {summary && (
+      <div className="p-5 rounded-2xl gradient-hero text-primary-foreground">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-primary-foreground/80 text-sm font-medium">Net Profit</p>
+            <p className="text-primary-foreground/80 text-sm font-medium">Net Savings</p>
             <h2 className="text-3xl font-bold mt-1">
-              ${mockBusinessMetrics.netProfit.toLocaleString()}
+              ${(summary.net_savings ?? 0).toLocaleString()}
             </h2>
-            <p className="text-primary-foreground/70 text-sm mt-1">This month</p>
+            <p className="text-primary-foreground/70 text-sm mt-1">{startDate} to {endDate}</p>
             
             <div className="flex items-center gap-4 mt-4">
               <div className="flex items-center gap-1.5 text-sm">
                 <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                   <TrendingUp className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-medium">{mockBusinessMetrics.profitMargin}%</span>
+                <span className="font-medium">{summary.savings_rate ?? 0}%</span>
               </div>
-              <span className="text-primary-foreground/60 text-xs">Profit Margin</span>
+              <span className="text-primary-foreground/60 text-xs">Savings Rate</span>
             </div>
-          </div>
-          <div className="text-right">
-            <div className="text-primary-foreground/80 text-xs">Cash Flow</div>
-            <div className="text-2xl font-bold">${mockBusinessMetrics.cashFlow.toLocaleString()}</div>
           </div>
         </div>
       </div>
+      )}
 
-      <div className="flex gap-3 animate-fade-up stagger-2">
+      <div className="flex gap-3">
         <Button 
           variant="gradient" 
           className="flex-1 h-12"
@@ -60,26 +135,28 @@ export default function BusinessDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 animate-fade-up stagger-3">
+      {summary && (
+      <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          title="Revenue"
-          value={`$${mockBusinessMetrics.monthlyRevenue.toLocaleString()}`}
-          change={mockBusinessMetrics.revenueChange}
+          title="Income"
+          value={`$${(summary.monthly_income ?? 0).toLocaleString()}`}
+          change={summary.income_change}
           icon={DollarSign}
           variant="income"
         />
         <MetricCard
           title="Expenses"
-          value={`$${mockBusinessMetrics.monthlyExpenses.toLocaleString()}`}
-          change={mockBusinessMetrics.expenseChange}
+          value={`$${(summary.monthly_expenses ?? 0).toLocaleString()}`}
+          change={summary.expense_change}
           icon={TrendingDown}
           variant="expense"
         />
       </div>
+      )}
 
-      <div className="space-y-3 animate-fade-up stagger-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Recent Transactions</h3>
+          <h3 className="font-semibold">Recent Transactions ({transactions.length})</h3>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -90,47 +167,83 @@ export default function BusinessDashboard() {
           </Button>
         </div>
         
-        <div className="bg-card rounded-2xl shadow-card border border-border/50 divide-y divide-border">
-          {recentTransactions.map((transaction) => (
-            <div key={transaction.id} className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  transaction.type === 'sale' ? 'bg-primary/10' : 'bg-destructive/10'
-                }`}>
-                  <Activity className={`w-5 h-5 ${
-                    transaction.type === 'sale' ? 'text-primary' : 'text-destructive'
-                  }`} />
+        <div className="bg-card rounded-2xl shadow-card border border-border/50">
+          {transactions.length > 0 ? (
+            <div className="divide-y divide-border">
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      transaction.transaction_type === 'income' ? 'bg-primary/10' : 'bg-destructive/10'
+                    }`}>
+                      <Activity className={`w-5 h-5 ${
+                        transaction.transaction_type === 'income' ? 'text-primary' : 'text-destructive'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{transaction.description}</p>
+                      <p className="text-xs text-muted-foreground">{(transaction as any).category_name || 'Uncategorized'}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-semibold ${
+                      transaction.transaction_type === 'income' ? 'text-primary' : 'text-destructive'
+                    }`}>
+                      {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(transaction.transaction_date).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">{transaction.description}</p>
-                  <p className="text-xs text-muted-foreground">{transaction.category}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className={`font-semibold ${
-                  transaction.type === 'sale' ? 'text-primary' : 'text-destructive'
-                }`}>
-                  {transaction.type === 'sale' ? '+' : '-'}${transaction.amount.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted-foreground">{transaction.date}</p>
-              </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground mb-2">No recent transactions</p>
+              <Button variant="outline" size="sm" onClick={() => navigate('/transactions/add')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Transaction
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 animate-fade-up stagger-5">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Activity className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm">Business Insight</h4>
-            <p className="text-sm text-muted-foreground mt-1">
-              Revenue increased by {mockBusinessMetrics.revenueChange}% this month. Consider expanding marketing efforts to maintain growth.
-            </p>
+      <div className="grid grid-cols-2 gap-3">
+        {summary && (
+        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Activity className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm">Business Insight</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                Income {(summary.income_change ?? 0) >= 0 ? 'increased' : 'decreased'} by {Math.abs(summary.income_change ?? 0)}% this month.
+              </p>
+            </div>
           </div>
         </div>
+        )}
+        
+        {taxBill && (
+        <button 
+          onClick={() => navigate('/business/tax')}
+          className="p-4 rounded-2xl bg-[#2D358B]/5 border border-[#2D358B]/20 hover:bg-[#2D358B]/10 transition-colors text-left"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#2D358B]/10 flex items-center justify-center flex-shrink-0">
+              <Calculator className="w-5 h-5 text-[#2D358B]" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm">Tax Liability</h4>
+              <p className="text-xl font-bold text-[#2D358B] mt-1">${(taxBill.totalTax ?? 0).toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Estimated annual</p>
+            </div>
+          </div>
+        </button>
+        )}
       </div>
     </div>
   );
