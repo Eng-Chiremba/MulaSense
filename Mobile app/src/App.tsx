@@ -36,6 +36,10 @@ import ProfitLossReport from "./pages/ProfitLossReport";
 import CashFlowReport from "./pages/CashFlowReport";
 import DebtBook from "./pages/DebtBook";
 import AddDebtor from "./pages/AddDebtor";
+import EditDebtor from "./pages/EditDebtor";
+import ManageDebtor from "./pages/ManageDebtor";
+import RecordPayment from "./pages/RecordPayment";
+import DebtorDetail from "./pages/DebtorDetail";
 
 const queryClient = new QueryClient();
 
@@ -264,9 +268,31 @@ function AppRoutes() {
       
       <Route path="/debtors/add" element={
         <ProtectedRoute>
-          <AppLayout>
-            <AddDebtor />
-          </AppLayout>
+          <AddDebtor />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debtors/:id/edit" element={
+        <ProtectedRoute>
+          <EditDebtor />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debtors/:id/manage" element={
+        <ProtectedRoute>
+          <ManageDebtor />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debtors/:id/payment" element={
+        <ProtectedRoute>
+          <RecordPayment />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/debtors/:id" element={
+        <ProtectedRoute>
+          <DebtorDetail />
         </ProtectedRoute>
       } />
       

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface Item {
@@ -12,15 +12,49 @@ interface Item {
   total_price: number | string;
 }
 
-export default function AddDebtor() {
+export default function EditDebtor() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [items, setItems] = useState<Item[]>([{ description: '', quantity: 1, unit_price: 0, total_price: 0 }]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      fetchDebtor();
+    }
+  }, [id]);
+
+  const fetchDebtor = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/debtors/${id}/`, {
+        headers: { 'Authorization': `Token ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setName(data.name);
+      setPhone(data.phone || '');
+      setEmail(data.email || '');
+      setAddress(data.address || '');
+      setDueDate(data.due_date);
+      if (data.items && data.items.length > 0) {
+        setItems(data.items);
+      }
+    } catch (error) {
+      console.error('Failed to fetch debtor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load debtor',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addItem = () => {
     setItems([...items, { description: '', quantity: 1, unit_price: 0, total_price: 0 }]);
@@ -41,7 +75,7 @@ export default function AddDebtor() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     const total_amount = items.reduce((sum, item) => sum + Number(item.total_price), 0);
     const payload = {
@@ -60,8 +94,8 @@ export default function AddDebtor() {
     };
 
     try {
-      const res = await fetch('http://localhost:8000/api/debtors/', {
-        method: 'POST',
+      const res = await fetch(`http://localhost:8000/api/debtors/${id}/`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Token ${localStorage.getItem('token')}`
@@ -72,14 +106,14 @@ export default function AddDebtor() {
       if (res.ok) {
         toast({
           title: 'Success',
-          description: 'Debtor created successfully',
+          description: 'Debtor updated successfully',
         });
         navigate('/debt-book');
       } else {
         const data = await res.json();
         toast({
           title: 'Error',
-          description: data?.detail || 'Failed to create debtor',
+          description: data?.detail || 'Failed to update debtor',
           variant: 'destructive',
         });
       }
@@ -91,13 +125,17 @@ export default function AddDebtor() {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return <div className="p-4 text-center">Loading...</div>;
+  }
+
   return (
     <div className="p-4 space-y-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold">Add New Debtor</h1>
+      <h1 className="text-2xl font-bold">Edit Debtor</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -175,8 +213,8 @@ export default function AddDebtor() {
         </div>
 
         <div className="flex gap-2">
-          <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Creating...' : 'Create Debtor'}
+          <Button type="submit" disabled={saving} className="flex-1">
+            {saving ? 'Saving...' : 'Update Debtor'}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate('/debt-book')}>
             Cancel

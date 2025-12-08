@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'reports',
     'ecocash',
     'transfers',
+    'debtors',
 ]
 
 MIDDLEWARE = [
@@ -92,7 +93,7 @@ WSGI_APPLICATION = 'MulaSense.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
-if DATABASE_URL and DATABASE_URL.strip():
+if DATABASE_URL and DATABASE_URL.strip() and 'sqlite' not in DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(
             DATABASE_URL,

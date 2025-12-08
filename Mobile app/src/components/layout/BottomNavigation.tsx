@@ -6,7 +6,8 @@ import {
   Target, 
   FileBarChart,
   CreditCard,
-  Calculator
+  Calculator,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/contexts/UserContext';
@@ -22,9 +23,9 @@ const individualNavItems = [
 const businessNavItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/transactions', icon: ArrowLeftRight, label: 'Transactions' },
+  { path: '/debt-book', icon: BookOpen, label: 'Debtors' },
   { path: '/business/reports', icon: FileBarChart, label: 'Reports' },
   { path: '/business/tax', icon: Calculator, label: 'Tax' },
-  { path: '/business/credit', icon: CreditCard, label: 'Credit' },
 ];
 
 export function BottomNavigation() {
