@@ -15,17 +15,19 @@ from budget.models import BudgetCategory, Goal
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', 'your-api-key-here')
 
-def call_openrouter_ai(prompt, model="meta-llama/llama-3.1-8b-instruct"):
+def call_openrouter_ai(prompt, model="meta-llama/llama-3.1-8b-instruct:free"):
     """Call OpenRouter AI API"""
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://mulasense.onrender.com",
+        "X-Title": "MulaSense Financial Advisor"
     }
     data = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}]
     }
-    response = requests.post(OPENROUTER_API_URL, headers=headers, json=data)
+    response = requests.post(OPENROUTER_API_URL, headers=headers, json=data, timeout=30)
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
 
