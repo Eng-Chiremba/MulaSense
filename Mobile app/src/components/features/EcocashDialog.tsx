@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import ecocashService, { EcoCashService } from '@/services/ecocash.service';
+import UssdPlugin from '@/plugins/ussd';
 
 interface EcocashDialogProps {
   onClose: () => void;
@@ -61,16 +62,16 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
 
     setLoading(true);
     try {
-      const payment = await ecocashService.sendMoney({
-        recipient_msisdn: EcoCashService.formatPhoneNumber(receiverNumber),
-        amount: parseFloat(amount),
-        reason: reason || 'Money transfer',
-        currency
-      });
+      const formattedNumber = receiverNumber.replace(/^0/, '263');
+      const ussdCode = currency === 'USD' 
+        ? `*153*1*1*${formattedNumber}*${amount}#`
+        : `*151*1*1*1*${formattedNumber}*${amount}#`;
+
+      await UssdPlugin.executeUssd({ ussdCode });
 
       toast({
-        title: 'Money Sent',
-        description: `${currency} ${amount} sent to ${receiverNumber}. Reference: ${payment.source_reference}`,
+        title: 'USSD Request Sent',
+        description: `Sending ${currency} ${amount} to ${receiverNumber}`,
       });
       
       onClose();
@@ -93,15 +94,15 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
 
     setLoading(true);
     try {
-      const payment = await ecocashService.buyAirtime({
-        phone_number: EcoCashService.formatPhoneNumber(phoneNumber),
-        amount: parseFloat(amount),
-        currency
-      });
+      const ussdCode = currency === 'USD'
+        ? `*153*4*1*1*1*${amount}#`
+        : `*151*1*4*1*1*1*${amount}#`;
+
+      await UssdPlugin.executeUssd({ ussdCode });
 
       toast({
-        title: 'Airtime Purchased',
-        description: `${currency} ${amount} airtime for ${phoneNumber}. Reference: ${payment.source_reference}`,
+        title: 'USSD Request Sent',
+        description: `Purchasing ${currency} ${amount} airtime for ${phoneNumber}`,
       });
       
       onClose();
@@ -264,7 +265,7 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
                 else if (selectedService === 'buy_airtime') handleBuyAirtime();
               }}
             >
-              {loading ? 'Processing...' : 'Pay with EcoCash'}
+              {loading ? 'Processing...' : selectedService === 'pay_merchant' ? 'Pay with EcoCash' : 'Continue'}
             </Button>
           </div>
         )}

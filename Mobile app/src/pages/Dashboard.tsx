@@ -9,8 +9,7 @@ import { HealthScoreRing } from '@/components/features/HealthScoreRing';
 import { TransactionItem } from '@/components/features/TransactionItem';
 import { EcocashDialog } from '@/components/features/EcocashDialog';
 import { useNavigate } from 'react-router-dom';
-import { transactionAPI, budgetAPI } from '@/services/api';
-import axios from 'axios';
+import { transactionAPI } from '@/services/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -43,10 +42,7 @@ export default function Dashboard() {
 
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const txnRes = await axios.get('http://localhost:8000/api/accounting/transactions/', {
-          headers: token ? { Authorization: `Token ${token}` } : {}
-        });
+        const txnRes = await transactionAPI.getAll();
         
         const allTxns = Array.isArray(txnRes.data) ? txnRes.data : (txnRes.data?.results || []);
         console.log('Transaction count:', allTxns.length);
