@@ -16,6 +16,9 @@ const config: CapacitorConfig = {
       backgroundColor: '#2D358B',
       showSpinner: false,
     },
+    UssdPlugin: {
+      enabled: true,
+    },
   },
 };
 

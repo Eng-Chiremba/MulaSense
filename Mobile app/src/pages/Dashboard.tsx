@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, TrendingDown, Wallet, PiggyBank, ArrowRight, 
-  Plus, Activity 
+  Plus, Activity, Smartphone 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/features/MetricCard';
 import { HealthScoreRing } from '@/components/features/HealthScoreRing';
 import { TransactionItem } from '@/components/features/TransactionItem';
+import { EcocashDialog } from '@/components/features/EcocashDialog';
 import { useNavigate } from 'react-router-dom';
 import { transactionAPI, budgetAPI } from '@/services/api';
 import axios from 'axios';
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState('Good morning');
   const [loading, setLoading] = useState(true);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [showEcocash, setShowEcocash] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -196,6 +198,18 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Ecocash Button */}
+      <div className="animate-fade-up stagger-2">
+        <Button 
+          variant="default" 
+          className="w-full h-12 bg-orange-600 hover:bg-orange-700"
+          onClick={() => setShowEcocash(true)}
+        >
+          <Smartphone className="w-4 h-4" />
+          Ecocash
+        </Button>
+      </div>
+
       {/* Quick Actions */}
       <div className="flex gap-3 animate-fade-up stagger-2">
         <Button 
@@ -280,6 +294,10 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {showEcocash && (
+        <EcocashDialog onClose={() => setShowEcocash(false)} />
+      )}
 
       {selectedTransaction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedTransaction(null)}>

@@ -46,7 +46,11 @@ export default function EditTransaction() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/accounting/categories/');
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+      const response = await axios.get(`${baseURL}/accounting/categories/`, {
+        headers: token ? { Authorization: `Token ${token}` } : {}
+      });
       const data = response.data.results || response.data || [];
       setCategories(data);
     } catch (error) {

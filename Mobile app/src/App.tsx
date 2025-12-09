@@ -1,10 +1,12 @@
+import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UserProvider, useUser } from "@/contexts/UserContext";
+import { App as CapacitorApp } from '@capacitor/app';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Index from "./pages/Index";
@@ -50,6 +52,26 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { isAuthenticated } = useUser();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    const mainRoutes = ['/', '/transactions', '/budget', '/goals', '/reports', '/profile'];
+    
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (mainRoutes.includes(location.pathname)) {
+        CapacitorApp.exitApp();
+      } else if (canGoBack) {
+        navigate(-1);
+      } else {
+        navigate('/');
+      }
+    });
+    
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate, location]);
   
   return (
     <Routes>
