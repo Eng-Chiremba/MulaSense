@@ -8,6 +8,10 @@ router.register(r'payments', views.EcoCashPaymentViewSet, basename='ecocash-paym
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('send-money/', views.send_money, name='send-money'),
+    path('buy-airtime/', views.buy_airtime, name='buy-airtime'),
+    path('pay-merchant/', views.pay_merchant, name='pay-merchant'),
     path('manual-payment/', views.manual_payment, name='manual-payment'),
     path('callback/', views.callback, name='ecocash-callback'),
+    path('payment-status/<uuid:source_reference>/', views.payment_status, name='payment-status'),
 ]

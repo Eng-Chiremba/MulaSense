@@ -3,65 +3,49 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { transactionAPI } from '@/services/api';
-import { ussdService } from '@/services/ussd.service';
-import axios from 'axios';
+import ecocashService, { EcoCashService } from '@/services/ecocash.service';
 
 interface EcocashDialogProps {
   onClose: () => void;
 }
 
-type ServiceType = 'pay_service' | 'send_money' | 'buy_airtime' | null;
+type ServiceType = 'pay_merchant' | 'send_money' | 'buy_airtime' | null;
 
 export function EcocashDialog({ onClose }: EcocashDialogProps) {
   const [selectedService, setSelectedService] = useState<ServiceType>(null);
   const [currency, setCurrency] = useState<'USD' | 'ZIG'>('USD');
   const [amount, setAmount] = useState('');
-  const [agentCode, setAgentCode] = useState('');
+  const [merchantCode, setMerchantCode] = useState('');
   const [receiverNumber, setReceiverNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const executeUSSD = async (ussdCode: string, description: string) => {
+  const handlePayMerchant = async () => {
+    if (!merchantCode || !amount) {
+      toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
+      return;
+    }
+
     setLoading(true);
     try {
-      const result = await ussdService.executeUSSD(ussdCode);
+      const payment = await ecocashService.payMerchant({
+        merchant_code: merchantCode,
+        amount: parseFloat(amount),
+        reason: reason || 'Merchant payment',
+        currency
+      });
 
-      if (result.success) {
-        const token = localStorage.getItem('token');
-        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-        
-        const categoriesRes = await axios.get(`${baseURL}/accounting/categories/`, {
-          headers: token ? { Authorization: `Token ${token}` } : {}
-        });
-        const categories = categoriesRes.data.results || categoriesRes.data || [];
-        const otherCategory = categories.find((cat: any) => 
-          cat.name.toLowerCase() === 'other' && cat.category_type === 'expense'
-        );
-
-        if (otherCategory) {
-          await transactionAPI.create({
-            description: `${description} (${currency})`,
-            amount: parseFloat(amount),
-            transaction_type: 'expense',
-            category: otherCategory.id,
-            transaction_date: new Date().toISOString().split('T')[0],
-            notes: `Ecocash - ${result.response || 'Completed'}`,
-            status: 'completed',
-          });
-        }
-
-        toast({
-          title: 'Success',
-          description: result.response || `${description} completed`,
-        });
-        
-        onClose();
-      }
-    } catch (error: any) {
-      console.error('Transaction error:', error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to process transaction',
+        title: 'Payment Initiated',
+        description: `Payment of ${currency} ${amount} to merchant ${merchantCode}. Reference: ${payment.source_reference}`,
+      });
+      
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: 'Payment Failed',
+        description: error.message || 'Failed to process payment',
         variant: 'destructive',
       });
     } finally {
@@ -69,44 +53,74 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
     }
   };
 
-  const handlePayService = () => {
-    if (!agentCode || !amount) {
-      toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
-      return;
-    }
-    const ussdCode = currency === 'USD' 
-      ? `*153*2*2*${agentCode}*${amount}#`
-      : `*151*1*2*2*${agentCode}*${amount}#`;
-    executeUSSD(ussdCode, 'Ecocash Pay Service');
-  };
-
-  const handleSendMoney = () => {
+  const handleSendMoney = async () => {
     if (!receiverNumber || !amount) {
       toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
       return;
     }
-    const ussdCode = currency === 'USD'
-      ? `*153*1*1*${receiverNumber}*${amount}#`
-      : `*151*1*1*1*${receiverNumber}*${amount}#`;
-    executeUSSD(ussdCode, 'Ecocash Send Money');
+
+    setLoading(true);
+    try {
+      const payment = await ecocashService.sendMoney({
+        recipient_msisdn: EcoCashService.formatPhoneNumber(receiverNumber),
+        amount: parseFloat(amount),
+        reason: reason || 'Money transfer',
+        currency
+      });
+
+      toast({
+        title: 'Money Sent',
+        description: `${currency} ${amount} sent to ${receiverNumber}. Reference: ${payment.source_reference}`,
+      });
+      
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: 'Transfer Failed',
+        description: error.message || 'Failed to send money',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleBuyAirtime = () => {
-    if (!amount) {
-      toast({ title: 'Error', description: 'Please enter amount', variant: 'destructive' });
+  const handleBuyAirtime = async () => {
+    if (!phoneNumber || !amount) {
+      toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
       return;
     }
-    const ussdCode = currency === 'USD'
-      ? `*153*4*1*1*${amount}#`
-      : `*151*1*4*1*1*${amount}#`;
-    executeUSSD(ussdCode, 'Ecocash Buy Airtime');
+
+    setLoading(true);
+    try {
+      const payment = await ecocashService.buyAirtime({
+        phone_number: EcoCashService.formatPhoneNumber(phoneNumber),
+        amount: parseFloat(amount),
+        currency
+      });
+
+      toast({
+        title: 'Airtime Purchased',
+        description: `${currency} ${amount} airtime for ${phoneNumber}. Reference: ${payment.source_reference}`,
+      });
+      
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: 'Purchase Failed',
+        description: error.message || 'Failed to buy airtime',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div className="bg-background rounded-2xl shadow-xl max-w-md w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Ecocash Transaction</h2>
+          <h2 className="text-xl font-bold">EcoCash Payment</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <span className="text-2xl">&times;</span>
           </Button>
@@ -117,9 +131,9 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
             <Button 
               variant="outline" 
               className="w-full h-14 text-lg"
-              onClick={() => setSelectedService('pay_service')}
+              onClick={() => setSelectedService('pay_merchant')}
             >
-              Pay Service
+              Pay Merchant
             </Button>
             <Button 
               variant="outline" 
@@ -178,28 +192,65 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
               />
             </div>
 
-            {selectedService === 'pay_service' && (
-              <div className="space-y-2">
-                <Label htmlFor="agentCode">Agent Code</Label>
-                <Input
-                  id="agentCode"
-                  type="number"
-                  placeholder="Enter agent code"
-                  value={agentCode}
-                  onChange={(e) => setAgentCode(e.target.value)}
-                />
-              </div>
+            {selectedService === 'pay_merchant' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="merchantCode">Merchant Code</Label>
+                  <Input
+                    id="merchantCode"
+                    type="text"
+                    placeholder="Enter merchant code"
+                    value={merchantCode}
+                    onChange={(e) => setMerchantCode(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reason">Reason (Optional)</Label>
+                  <Input
+                    id="reason"
+                    type="text"
+                    placeholder="Payment description"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </div>
+              </>
             )}
 
             {selectedService === 'send_money' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="receiverNumber">Receiver Number</Label>
+                  <Input
+                    id="receiverNumber"
+                    type="tel"
+                    placeholder="263774222475"
+                    value={receiverNumber}
+                    onChange={(e) => setReceiverNumber(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reason">Reason (Optional)</Label>
+                  <Input
+                    id="reason"
+                    type="text"
+                    placeholder="Money transfer"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            {selectedService === 'buy_airtime' && (
               <div className="space-y-2">
-                <Label htmlFor="receiverNumber">Receiver Number</Label>
+                <Label htmlFor="phoneNumber">Phone Number</Label>
                 <Input
-                  id="receiverNumber"
+                  id="phoneNumber"
                   type="tel"
-                  placeholder="Enter receiver number"
-                  value={receiverNumber}
-                  onChange={(e) => setReceiverNumber(e.target.value)}
+                  placeholder="263774222475"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
             )}
@@ -208,12 +259,12 @@ export function EcocashDialog({ onClose }: EcocashDialogProps) {
               className="w-full" 
               disabled={loading}
               onClick={() => {
-                if (selectedService === 'pay_service') handlePayService();
+                if (selectedService === 'pay_merchant') handlePayMerchant();
                 else if (selectedService === 'send_money') handleSendMoney();
                 else if (selectedService === 'buy_airtime') handleBuyAirtime();
               }}
             >
-              {loading ? 'Processing...' : 'Proceed'}
+              {loading ? 'Processing...' : 'Pay with EcoCash'}
             </Button>
           </div>
         )}

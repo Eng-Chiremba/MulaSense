@@ -42,6 +42,7 @@ import EditDebtor from "./pages/EditDebtor";
 import ManageDebtor from "./pages/ManageDebtor";
 import RecordPayment from "./pages/RecordPayment";
 import DebtorDetail from "./pages/DebtorDetail";
+import EcoCashPayments from "./pages/EcoCashPayments";
 
 const queryClient = new QueryClient();
 
@@ -315,6 +316,14 @@ function AppRoutes() {
       <Route path="/debtors/:id" element={
         <ProtectedRoute>
           <DebtorDetail />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/ecocash" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <EcoCashPayments />
+          </AppLayout>
         </ProtectedRoute>
       } />
       
