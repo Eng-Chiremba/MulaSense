@@ -67,15 +67,15 @@ export default function Transactions() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 animate-fade-up stagger-1">
-        <div className="p-4 rounded-xl bg-income/10 border border-income/20">
+        <div className="p-4 rounded-xl border border-border/50" style={{ backgroundColor: '#2D358B15' }}>
           <p className="text-xs text-muted-foreground font-medium">Total Income</p>
-          <p className="text-xl font-bold text-income mt-1">
+          <p className="text-xl font-bold mt-1" style={{ color: '#2D358B' }}>
             +${totalIncome.toLocaleString()}
           </p>
         </div>
-        <div className="p-4 rounded-xl bg-expense/10 border border-expense/20">
+        <div className="p-4 rounded-xl border border-border/50" style={{ backgroundColor: '#89221f15' }}>
           <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
-          <p className="text-xl font-bold text-expense mt-1">
+          <p className="text-xl font-bold mt-1" style={{ color: '#89221f' }}>
             -${totalExpense.toLocaleString()}
           </p>
         </div>
@@ -161,15 +161,12 @@ export default function Transactions() {
               </Button>
             </div>
             
-            <div className={`p-6 rounded-xl mb-4 ${
-              selectedTransaction.type === 'income' 
-                ? 'bg-success/10 border border-success/20' 
-                : 'bg-destructive/10 border border-destructive/20'
-            }`}>
+            <div className="p-6 rounded-xl mb-4 border" style={{
+              backgroundColor: selectedTransaction.type === 'income' ? '#2D358B15' : '#89221f15',
+              borderColor: selectedTransaction.type === 'income' ? '#2D358B30' : '#89221f30'
+            }}>
               <p className="text-sm text-muted-foreground mb-1">Amount</p>
-              <h3 className={`text-3xl font-bold ${
-                selectedTransaction.type === 'income' ? 'text-success' : 'text-destructive'
-              }`}>
+              <h3 style={{ color: selectedTransaction.type === 'income' ? '#2D358B' : '#89221f' }} className="text-3xl font-bold">
                 {selectedTransaction.type === 'income' ? '+' : '-'}${parseFloat(selectedTransaction.amount).toLocaleString()}
               </h3>
             </div>
@@ -198,11 +195,10 @@ export default function Transactions() {
               
               <div>
                 <p className="text-xs text-muted-foreground">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                  selectedTransaction.status === 'completed' 
-                    ? 'bg-success/10 text-success' 
-                    : 'bg-warning/10 text-warning'
-                }`}>
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium capitalize" style={{
+                  backgroundColor: selectedTransaction.status === 'completed' ? '#2D358B15' : '#FFA50015',
+                  color: selectedTransaction.status === 'completed' ? '#2D358B' : '#FFA500'
+                }}>
                   {selectedTransaction.status}
                 </span>
               </div>
