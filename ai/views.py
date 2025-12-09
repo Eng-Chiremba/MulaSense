@@ -13,10 +13,14 @@ from budget.models import BudgetCategory, Goal
 
 # OpenRouter API Configuration
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', 'your-api-key-here')
+import os
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY') or getattr(settings, 'OPENROUTER_API_KEY', '')
 
 def call_openrouter_ai(prompt, model="meta-llama/llama-3.1-8b-instruct:free"):
     """Call OpenRouter AI API"""
+    if not OPENROUTER_API_KEY or OPENROUTER_API_KEY == 'your-api-key-here':
+        raise ValueError("OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable.")
+    
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",

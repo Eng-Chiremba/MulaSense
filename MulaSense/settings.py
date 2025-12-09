@@ -184,7 +184,9 @@ CORS_ALLOWED_METHODS = [
 ]
 
 # OpenRouter AI Configuration
-OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', 'your-api-key-here')
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+if not OPENROUTER_API_KEY:
+    print("WARNING: OPENROUTER_API_KEY not set in environment variables")
 
 # EcoCash Configuration
 ECOCASH_API_KEY = os.getenv('ECOCASH_API_KEY', '')
