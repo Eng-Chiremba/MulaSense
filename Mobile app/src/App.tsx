@@ -340,13 +340,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
-      <Route path="*" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <NotFound />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
