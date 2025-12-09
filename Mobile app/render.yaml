@@ -2,6 +2,7 @@ services:
   - type: web
     name: mulasense-frontend
     env: static
+    rootDir: Mobile app
     buildCommand: npm install && npm run build:web
     staticPublishPath: ./dist
     routes:
