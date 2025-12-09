@@ -134,7 +134,7 @@ export default function IncomeExpenseReport() {
                 <p className="text-2xl font-bold">${summary.totalIncome.toLocaleString()}</p>
                 <p className="text-xs opacity-75 mt-1">Avg: ${summary.avgIncome.toLocaleString()}/mo</p>
               </div>
-              <div className="bg-gradient-to-br from-[#2D358B] to-[#1e2460] rounded-2xl p-4 text-white">
+              <div className="bg-gradient-to-br from-[#89221f] to-[#6b1a17] rounded-2xl p-4 text-white">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingDown className="w-4 h-4" />
                   <p className="text-xs opacity-90">Total Expenses</p>
@@ -148,7 +148,7 @@ export default function IncomeExpenseReport() {
             <div className={`rounded-2xl p-5 text-white ${
               summary.totalIncome - summary.totalExpenses >= 0 
                 ? 'bg-gradient-to-br from-[#2D358B] to-[#1e2460]' 
-                : 'bg-gradient-to-br from-red-500 to-red-600'
+                : 'bg-gradient-to-br from-[#89221f] to-[#6b1a17]'
             }`}>
               <div className="flex items-center justify-between">
                 <div>
@@ -212,7 +212,7 @@ export default function IncomeExpenseReport() {
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="Income" fill="#2D358B" radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="Expenses" fill="#89221fff" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="Expenses" fill="#89221f" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   ) : (
                     <LineChart data={chartData}>
@@ -221,7 +221,7 @@ export default function IncomeExpenseReport() {
                       <Tooltip />
                       <Legend />
                       <Line type="monotone" dataKey="Income" stroke="#2D358B" strokeWidth={3} />
-                      <Line type="monotone" dataKey="Expenses" stroke="#2D358B" strokeWidth={3} />
+                      <Line type="monotone" dataKey="Expenses" stroke="#89221f" strokeWidth={3} />
                     </LineChart>
                   )}
                 </ResponsiveContainer>
@@ -285,13 +285,13 @@ export default function IncomeExpenseReport() {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Expenses</p>
-                        <p className="text-lg font-bold" style={{ color: '#2D358B' }}>${data.Expenses.toLocaleString()}</p>
+                        <p className="text-lg font-bold" style={{ color: '#89221f' }}>${data.Expenses.toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Net</p>
-                        <p className={`text-lg font-bold ${net >= 0 ? '' : 'text-red-600'}`} style={net >= 0 ? { color: '#2D358B' } : {}}>
+                        <p className="text-lg font-bold" style={{ color: net >= 0 ? '#2D358B' : '#89221f' }}>
                           ${Math.abs(net).toLocaleString()}
                         </p>
                       </div>

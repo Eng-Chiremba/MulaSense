@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UserProvider, useUser } from "@/contexts/UserContext";
-import { App as CapacitorApp } from '@capacitor/app';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Index from "./pages/Index";
@@ -57,20 +56,34 @@ function AppRoutes() {
   const location = useLocation();
   
   useEffect(() => {
-    const mainRoutes = ['/', '/transactions', '/budget', '/goals', '/reports', '/profile'];
+    const mainRoutes = ['/', '/transactions', '/budget', '/goals', '/reports', '/profile', '/debt-book'];
     
-    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-      if (mainRoutes.includes(location.pathname)) {
-        CapacitorApp.exitApp();
-      } else if (canGoBack) {
-        navigate(-1);
-      } else {
-        navigate('/');
+    const setupBackButton = async () => {
+      try {
+        const { App: CapacitorApp } = await import('@capacitor/app');
+        const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+          if (mainRoutes.includes(location.pathname)) {
+            CapacitorApp.exitApp();
+          } else if (canGoBack) {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
+        });
+        
+        return () => {
+          backButtonListener.remove();
+        };
+      } catch (error) {
+        console.log('Capacitor not available');
       }
-    });
+    };
+    
+    let cleanup: (() => void) | undefined;
+    setupBackButton().then(fn => { cleanup = fn; });
     
     return () => {
-      backButtonListener.remove();
+      cleanup?.();
     };
   }, [navigate, location]);
   

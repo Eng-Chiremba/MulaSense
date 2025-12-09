@@ -98,7 +98,7 @@ export default function ProfitLossReport() {
                 <p className="text-xs opacity-90">Total Revenue</p>
                 <p className="text-2xl font-bold mt-1">${summary.totalRevenue.toLocaleString()}</p>
               </div>
-              <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #2D358B 0%, #DC2626 100%)' }}>
+              <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #89221f 0%, #6b1a17 100%)' }}>
                 <TrendingDown className="w-5 h-5 mb-2 opacity-90" />
                 <p className="text-xs opacity-90">Total Expenses</p>
                 <p className="text-2xl font-bold mt-1">${summary.totalExpenses.toLocaleString()}</p>
@@ -151,7 +151,7 @@ export default function ProfitLossReport() {
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="Revenue" fill="#2D358B" radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="Expenses" fill="#EF4444" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="Expenses" fill="#89221f" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -166,8 +166,8 @@ export default function ProfitLossReport() {
                         <div className="flex items-center justify-between mb-3">
                           <p className="font-medium">{data.month}</p>
                           <span className="text-xs px-2 py-1 rounded-full" style={{
-                            backgroundColor: data.Profit >= 0 ? '#2D358B15' : '#EF444415',
-                            color: data.Profit >= 0 ? '#2D358B' : '#EF4444'
+                            backgroundColor: data.Profit >= 0 ? '#2D358B15' : '#89221f15',
+                            color: data.Profit >= 0 ? '#2D358B' : '#89221f'
                           }}>
                             {profitMargin}% margin
                           </span>
@@ -179,11 +179,11 @@ export default function ProfitLossReport() {
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Expenses</span>
-                            <span className="font-semibold" style={{ color: '#EF4444' }}>${data.Expenses.toLocaleString()}</span>
+                            <span className="font-semibold" style={{ color: '#89221f' }}>${data.Expenses.toLocaleString()}</span>
                           </div>
                           <div className="pt-2 border-t flex justify-between">
                             <span className="font-medium">Net Profit</span>
-                            <span className="font-bold" style={{ color: data.Profit >= 0 ? '#2D358B' : '#EF4444' }}>
+                            <span className="font-bold" style={{ color: data.Profit >= 0 ? '#2D358B' : '#89221f' }}>
                               ${Math.abs(data.Profit).toLocaleString()}
                             </span>
                           </div>
