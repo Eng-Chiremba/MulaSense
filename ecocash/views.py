@@ -29,20 +29,21 @@ class AutomaticBillPaymentViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
+@api_view(['GET', 'POST'])
+@permission_classes([])
+def test_connection(request):
+    """Test endpoint to verify connection"""
+    return Response({
+        'message': 'EcoCash API connection working!',
+        'method': request.method,
+        'user': str(request.user) if request.user.is_authenticated else 'Anonymous'
+    })
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_money(request):
-    """
-    Send money to another EcoCash user
-    
-    POST /api/ecocash/send-money/
-    {
-        "recipient_msisdn": "263774222475",
-        "amount": 10.50,
-        "reason": "Payment for services",
-        "currency": "USD"
-    }
-    """
+    """Send money to another EcoCash user"""
     service = EcoCashService()
     
     recipient_msisdn = request.data.get('recipient_msisdn')
@@ -78,16 +79,7 @@ def send_money(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def buy_airtime(request):
-    """
-    Buy airtime using EcoCash
-    
-    POST /api/ecocash/buy-airtime/
-    {
-        "phone_number": "263774222475",
-        "amount": 5.00,
-        "currency": "USD"
-    }
-    """
+    """Buy airtime using EcoCash"""
     service = EcoCashService()
     
     phone_number = request.data.get('phone_number')
@@ -121,17 +113,7 @@ def buy_airtime(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def pay_merchant(request):
-    """
-    Pay merchant using EcoCash
-    
-    POST /api/ecocash/pay-merchant/
-    {
-        "merchant_code": "12345",
-        "amount": 25.00,
-        "reason": "Grocery shopping",
-        "currency": "USD"
-    }
-    """
+    """Pay merchant using EcoCash"""
     service = EcoCashService()
     
     merchant_code = request.data.get('merchant_code')
@@ -167,17 +149,7 @@ def pay_merchant(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def manual_payment(request):
-    """
-    Handle manual EcoCash payment
-    
-    POST /api/ecocash/manual-payment/
-    {
-        "customer_msisdn": "263774222475",
-        "amount": 10.50,
-        "reason": "Payment",
-        "currency": "USD"
-    }
-    """
+    """Handle manual EcoCash payment"""
     service = EcoCashService()
     
     customer_msisdn = request.data.get('customer_msisdn')
@@ -213,16 +185,7 @@ def manual_payment(request):
 
 @api_view(['POST'])
 def callback(request):
-    """
-    Handle EcoCash payment callback
-    
-    POST /api/ecocash/callback/
-    {
-        "sourceReference": "581af738-f459-4629-a72e-8388e0acdb5e",
-        "status": "completed",
-        "transactionId": "ECO123456789"
-    }
-    """
+    """Handle EcoCash payment callback"""
     source_reference = request.data.get('sourceReference')
     payment_status = request.data.get('status')
     transaction_id = request.data.get('transactionId')
@@ -257,11 +220,7 @@ def callback(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_status(request, source_reference):
-    """
-    Get payment status by source reference
-    
-    GET /api/ecocash/payment-status/{source_reference}/
-    """
+    """Get payment status by source reference"""
     try:
         payment = EcoCashPayment.objects.get(
             source_reference=source_reference,

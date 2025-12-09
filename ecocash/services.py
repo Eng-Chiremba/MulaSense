@@ -6,18 +6,14 @@ from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 from .models import EcoCashPayment, AutomaticBillPayment
+from .mock_service import MockEcoCashService
 
 class EcoCashService:
     """
-    EcoCash API Integration Service
+    EcoCash API Integration Service with Mock Support
     
-    Handles payments using EcoCash Open API v2
+    Handles payments using EcoCash Open API v2 or mock responses
     Base URL: https://developers.ecocash.co.zw/api/ecocash_pay/
-    
-    Sandbox PIN codes for testing:
-    - "0000"
-    - "1234" 
-    - "9999"
     """
     
     def __init__(self):
@@ -26,20 +22,12 @@ class EcoCashService:
         self.sandbox_endpoint = '/api/ecocash_pay/api/v2/payment/instant/c2b/sandbox'
         self.live_endpoint = '/api/ecocash_pay/api/v2/payment/instant/c2b/live'
         self.is_sandbox = os.environ.get('ECOCASH_SANDBOX', 'True') == 'True'
+        self.use_mock = os.environ.get('ECOCASH_USE_MOCK', 'True') == 'True'
+        self.mock_service = MockEcoCashService() if self.use_mock else None
     
     def process_payment(self, customer_msisdn, amount, reason, currency='USD', source_reference=None):
         """
-        Process EcoCash C2B payment using official API
-        
-        Args:
-            customer_msisdn (str): Customer phone number (e.g., "263774222475")
-            amount (float): Payment amount
-            reason (str): Payment description
-            currency (str): Currency code (USD or ZIG)
-            source_reference (str): UUID reference (auto-generated if None)
-            
-        Returns:
-            dict: API response with success status and data
+        Process EcoCash C2B payment using mock service or official API
         """
         if source_reference is None:
             source_reference = str(uuid.uuid4())
@@ -51,6 +39,13 @@ class EcoCashService:
             elif customer_msisdn.startswith('+263'):
                 customer_msisdn = customer_msisdn[1:]
         
+        # Use mock service if enabled
+        if self.use_mock and self.mock_service:
+            return self.mock_service.process_payment(
+                customer_msisdn, amount, reason, currency, source_reference
+            )
+        
+        # Original API implementation (fallback)
         payload = {
             "customerMsisdn": customer_msisdn,
             "amount": float(amount),
